@@ -4,7 +4,7 @@ This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 
 ---
 
-**Note**: This not yet intended for production usage. It is currently in Pre-Alpha development status. Use at your own risk.
+**Note**: This is not yet intended for production usage. It is currently in Pre-Alpha development status. Use at your own risk.
  
 ---
 
@@ -97,7 +97,7 @@ resp.data
     u'success': True
 }
 
-# We can stop an already reading optimization
+# We can stop an already running optimization
 resp = optimo_api.stop('1234')
 resp.is_success
 ```
