@@ -6,7 +6,6 @@ import pytest
 
 from optimoroute.core.schema.v1 import RoutePlanValidator
 from optimoroute.api import (
-    OptimoResponse,
     WorkShift,
     OptimoAPI, 
     Driver,
@@ -47,11 +46,8 @@ def route_plan():
 
 
 def test_successful_get(optimo_api):
-    response = optimo_api.get('1234')
-    assert isinstance(response, OptimoResponse)
-    assert response.is_success is True
-    assert response.status_code is 200
-    assert response.data == {
+    data = optimo_api.get('1234')
+    assert data == {
         u'creationTime': u'2014-12-04T17:01:52',
         u'requestId': u'1234',
         u'result': {
@@ -78,16 +74,8 @@ def test_successful_plan(optimo_api, route_plan):
     # check if OptimoRoute's JSON schema feels the same about its validity.
     assert RoutePlanValidator.validate(route_plan_dict) is None
 
-    response = optimo_api.plan(route_plan)
-    assert isinstance(response, OptimoResponse)
-    assert response.is_success is True
-    assert response.status_code is 200
-    assert response.data == {'success': True}
+    assert optimo_api.plan(route_plan) is None
 
 
 def test_successful_stop(optimo_api):
-    response = optimo_api.stop('3421')
-    assert isinstance(response, OptimoResponse)
-    assert response.is_success is True
-    assert response.status_code is 200
-    assert response.data == {'success': True}
+    assert optimo_api.stop('3421') is None

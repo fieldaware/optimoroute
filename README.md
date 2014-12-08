@@ -22,23 +22,29 @@ Installation using `pip`:
 # Usage
 
 ```python
-import datetime
+from datetime import datetime
 from decimal import Decimal
-from optimoroute.api import OptimoAPI
+from optimoroute.api import OptimoAPI, Driver, WorkShift, Order, RoutePlan
 
 
-d1 = datetime.datetime(year=2014, month=12, day=5, hour=8, minute=0)
-d2 = datetime.datetime(year=2014, month=12, day=5, hour=14, minute=0)
-ws = WorkShift(work_from=d1, work_to=d2)
+# Instantiate the interface to optimoroute's API.
+optimo_api = OptimoAPI('https://api.optimoroute.com', 'some_access_key')
 
+# Create a workshift for the driver.
+ws = WorkShift(
+    start_work=datetime(year=2014, month=12, day=5, hour=8, minute=0), 
+    end_work=datetime(year=2014, month=12, day=5, hour=14, minute=0)
+)
+
+# Create the driver and also pass the workshift we created above.
 drv = Driver(
     id='123', 
     start_lat=Decimal('53.350046'), 
     start_lng=Decimal('-6.274655'), 
     end_lat=Decimal('53.341191'), 
-    end_lng=Decimal('-6.260402')
+    end_lng=Decimal('-6.260402'),
+    work_shifts=[ws]
 )
-drv.work_shifts.append(ws)
 
 order1 = Order(
     id='123', 
@@ -54,31 +60,27 @@ order2 = Order(
     duration=25
 )
 
+# Create the route plan, and also pass the orders and the driver created above.
 # The 'request_id' is the one we'll use later to check the results of the 
 # plan optimization.
 routeplan = RoutePlan(
     request_id='1234',
     callback_url='https://callback.com/1234',
     status_callback_url='https://status.callback.com/1234'
+    drivers=[drv],
+    orders=[order1, order2]
 )
-routeplan.drivers.append(drv)
-routeplan.orders.append(order1)
-routeplan.orders.append(order2)
 
-optimo_api = OptimoAPI('https://api.optimoroute.com', 'v1', 'some_access_key')
-
-# Start the plan optimization.
-resp = optimo_api.plan(routeplan)
-# We can check if the request was successful
-resp.is_success
+# Start the plan optimization. If there is no exception raised then we assume
+# success.
+optimo_api.plan(routeplan)
 
 # Get the result of the optimization. We use the 'request_id' we provided to
 # optimoroute previously.
-resp = optimo_api.get('1234')
+data = optimo_api.get('1234')
 
-# If the optimization has finished we can see the result.
-resp.data
-# output
+# If the optimization has finished we can see the result. Otherwise the data 
+# will be None.
 {
     u'creationTime': u'2014-12-04T17:01:52',
     u'requestId': u'1234',
@@ -97,9 +99,9 @@ resp.data
     u'success': True
 }
 
-# We can stop an already running optimization
-resp = optimo_api.stop('1234')
-resp.is_success
+# We can stop an already running optimization. If stopped previously no
+# exceptions will be raised, it will return None implying it was successful.
+optimo_api.stop('1234')
 ```
 
 

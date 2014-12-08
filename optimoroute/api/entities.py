@@ -37,19 +37,19 @@ class SchedulingInfo(BaseModel):
 
 
 class TimeWindow(BaseModel):
-    def __init__(self, time_from, time_to):
-        self.time_from = time_from
-        self.time_to = time_to
+    def __init__(self, start_time, end_time):
+        self.start_time = start_time
+        self.end_time = end_time
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.time_from, datetime.datetime):
+        if not isinstance(self.start_time, datetime.datetime):
             raise TypeError(
                 "'{}.time_from' must be of type datetime.datetime"
                 .format(cls_name)
             )
 
-        if not isinstance(self.time_to, datetime.datetime):
+        if not isinstance(self.end_time, datetime.datetime):
             raise TypeError(
                 "'{}.time_to' must be of type datetime.datetime"
                 .format(cls_name)
@@ -58,8 +58,8 @@ class TimeWindow(BaseModel):
     def as_optimo_schema(self):
         self.validate()
         return {
-            'timeFrom': self.time_from,
-            'timeTo': self.time_to
+            'startTime': self.start_time,
+            'endTime': self.end_time
         }
 
 
@@ -138,17 +138,17 @@ class Order(BaseModel):
 
 class Break(BaseModel):
 
-    def __init__(self, start_from, start_to, duration):
-        self.start_from = start_from
-        self.start_to = start_to
+    def __init__(self, start_break, end_break, duration):
+        self.start_break = start_break
+        self.end_break = end_break
         self.duration = duration
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.start_from, datetime.datetime):
+        if not isinstance(self.start_break, datetime.datetime):
             raise TypeError("'{}.start_from' must be a datetime.datetime "
                             "instance".format(cls_name))
-        if not isinstance(self.start_to, datetime.datetime):
+        if not isinstance(self.end_break, datetime.datetime):
             raise TypeError("'{}.start_to' must be a datetime.datetime "
                             "instance".format(cls_name))
 
@@ -158,26 +158,26 @@ class Break(BaseModel):
     def as_optimo_schema(self):
         self.validate()
         return {
-            'breakStartFrom': self.start_from,
-            'breakStartTo': self.start_to,
+            'breakStartFrom': self.start_break,
+            'breakStartTo': self.end_break,
             'breakDuration': self.duration
         }
 
 
 class WorkShift(BaseModel):
 
-    def __init__(self, work_from, work_to):
-        self.work_from = work_from
-        self.work_to = work_to
+    def __init__(self, start_work, end_work):
+        self.start_work = start_work
+        self.end_work = end_work
         self.allowed_overtime = None
         self.break_ = None
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.work_from, datetime.datetime):
+        if not isinstance(self.start_work, datetime.datetime):
             raise TypeError("'{}.work_from' must be a datetime.datetime "
                             "instance".format(cls_name))
-        if not isinstance(self.work_to, datetime.datetime):
+        if not isinstance(self.end_work, datetime.datetime):
             raise TypeError("'{}.work_to' must be a datetime.datetime "
                             "instance".format(cls_name))
 
@@ -193,8 +193,8 @@ class WorkShift(BaseModel):
     def as_optimo_schema(self):
         self.validate()
         d = {
-            'workTimeFrom': self.work_from,
-            'workTimeTo': self.work_to,
+            'workTimeFrom': self.start_work,
+            'workTimeTo': self.end_work,
         }
 
         if self.allowed_overtime:
@@ -208,24 +208,24 @@ class WorkShift(BaseModel):
 
 class UnavailableTime(BaseModel):
 
-    def __init__(self, time_from, time_to):
-        self.time_from = time_from
-        self.time_to = time_to
+    def __init__(self, start_time, end_time):
+        self.start_time = start_time
+        self.end_time = end_time
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.time_from, datetime.datetime):
+        if not isinstance(self.start_time, datetime.datetime):
             raise TypeError("'{}.time_from' must be a datetime.datetime "
                             "instance".format(cls_name))
-        if not isinstance(self.time_to, datetime.datetime):
+        if not isinstance(self.end_time, datetime.datetime):
             raise TypeError("'{}.time_to' must be a datetime.datetime "
                             "instance".format(cls_name))
 
     def as_optimo_schema(self):
         self.validate()
         return {
-            'timeFrom': self.time_from,
-            'timeTo': self.time_to,
+            'timeFrom': self.start_time,
+            'timeTo': self.end_time,
         }
 
 
