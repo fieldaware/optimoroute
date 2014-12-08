@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
-import os
 from setuptools import setup
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+with open('README.md', 'r') as f:
+    readme = f.read()
+
+packages = [
+    'optimoroute',
+    'optimoroute.core',
+    'optimoroute.core.schema',
+    'optimoroute.core.schema.v1',
+    'optimoroute.api',
+    'tests'
+]
 
 setup(
     name = "optimoroute",
@@ -22,8 +30,8 @@ setup(
     description = "A python library for OptimoRoute's web service",
     license = "BSD",
     url = "https://github.com/fieldaware/optimoroute",
-    packages=['optimoroute', 'tests'],
-    long_description=read('README.md'),
+    packages=packages,
+    long_description=readme,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

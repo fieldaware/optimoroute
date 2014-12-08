@@ -1,0 +1,5 @@
+include MANIFEST.in
+include README.md
+include requirements.txt
+include LICENSE
+include optimoroute/core/schema/v1/plan_route_request.json
