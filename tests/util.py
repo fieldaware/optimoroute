@@ -1,0 +1,58 @@
+# -*- coding: utf-8 -*-
+
+SUCCESSFUL_GET_RESPONSE = {
+    'content': '{"creationTime":"2014-12-04T17:01:52","requestId":"1234",'
+               '"success":true,"result":{"routes":[{"driverId":"123",'
+               '"orders":[{"scheduledAt":"2014-12-05T08:04","id":"123"},'
+               '{"scheduledAt":"2014-12-05T08:27","id":"456"}]}],'
+               '"unservedOrders":[]}}',
+    'headers': {
+        'content-length': '236',
+        'server': 'TornadoServer/4.0.2',
+        'connection': 'keep-alive',
+        'etag': '"505dfd429ec44bb17e7f47a3cf6e11305cc15a80"',
+        'date': 'Fri, 05 Dec 2014 15:22:16 GMT',
+        'content-type': 'application/json'
+    },
+    'status_code': 200
+}
+
+SUCCESSFUL_PLAN_RESPONSE = {
+    'content': '{"success":true}',
+    'status_code': 200,
+    'headers': {
+        'date': 'Mon, 08 Dec 2014 10:36:03 GMT',
+        'content-length': '16',
+        'content-type': 'application/json',
+        'connection': 'keep-alive',
+        'server': 'TornadoServer/4.0.2'
+    }
+}
+
+SUCCESSFUL_STOP_RESPONSE = {
+    'content': '{"success":true}',
+    'status_code': 200,
+    'headers': {
+        'date': 'Mon, 08 Dec 2014 10:36:03 GMT',
+        'content-length': '16',
+        'content-type': 'application/json',
+        'connection': 'keep-alive',
+        'server': 'TornadoServer/4.0.2'
+    }
+}
+
+REQUEST_ID_TO_RESPONSE = {
+    '1234': SUCCESSFUL_GET_RESPONSE,
+    '4321': SUCCESSFUL_PLAN_RESPONSE,
+    '3421': SUCCESSFUL_STOP_RESPONSE
+}
+
+
+class MockedResponse(object):
+    """This will replace the :class:`Response <requests.models.Response>`
+    object, that gets returned by `requests.sessions.Session.request` method.
+    """
+    def __init__(self, content, headers, status_code):
+        self.content = content
+        self.headers = headers
+        self.status_code = status_code

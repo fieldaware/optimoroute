@@ -1,2 +1,4 @@
 requests==2.4.3
 jsonschema==2.4.0
+pytz==2014.10
+pytest==2.6.4
