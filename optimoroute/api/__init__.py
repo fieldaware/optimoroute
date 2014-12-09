@@ -10,4 +10,4 @@ from .entities import (
     WorkShift,
     BaseModel
 )
-from .base import OptimoAPI
+from .base import OptimoAPI, OptimoError

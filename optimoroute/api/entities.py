@@ -345,9 +345,9 @@ class RoutePlan(BaseModel):
                 order.validate()
 
         if not isinstance(self.drivers, list):
-            raise TypeError("drivers must be of type list")
+            raise TypeError("'{}.drivers' must be of type list".format(cls_name))
         if not self.drivers:
-            raise ValueError("drivers must have at least 1 element")
+            raise ValueError("'{}.drivers' must have at least 1 element".format(cls_name))
         else:
             for drv in self.drivers:
                 if not isinstance(drv, Driver):
@@ -357,14 +357,14 @@ class RoutePlan(BaseModel):
 
         if self.status_callback_url is not None:
             if not isinstance(self.status_callback_url, basestring):
-                raise TypeError("'status_callback_url' must be of type str")
+                raise TypeError("'{}.status_callback_url' must be of type str".format(cls_name))
 
         if self.no_load_capacities is not None:
             if not isinstance(self.no_load_capacities, (int, long)):
-                raise TypeError("'no_load_capacities' must be of type integer")
+                raise TypeError("'{}.no_load_capacities' must be of type integer".format(cls_name))
             else:
                 if 0 <= self.no_load_capacities <= 4:
-                    raise ValueError("'no_load_capacities' must be between 0-4")
+                    raise ValueError("'{}.no_load_capacities' must be between 0-4".format(cls_name))
 
     def as_optimo_schema(self):
         self.validate()

@@ -17,6 +17,34 @@ SUCCESSFUL_GET_RESPONSE = {
     'status_code': 200
 }
 
+REQUEST_ID_NOT_FOUND_RESPONSE = {
+    'content': '{"message":"Request with the requestId specified (\'43b2\') '
+               'was not found.","code":"ERR_REQ_NOT_EXISTING","success":false}',
+    'status_code': 200,
+    'headers': {
+        'content-length': '120',
+        'server': 'TornadoServer/4.0.2',
+        'connection': 'keep-alive',
+        'etag': '"de2a7344fe6a9f09559b9b2fa46b767fd30e3634"',
+        'date': 'Tue, 09 Dec 2014 13:17:33 GMT',
+        'content-type': 'application/json'
+    }
+}
+
+PLANNING_IN_PROGRESS_RESPONSE = {
+    'content': '{"message":"Optimization is still running.",'
+               '"code":"ERR_PLANNING_IN_PROGRESS","success":false}',
+    'status_code': 200,
+    'headers': {
+        'content-length': '120',
+        'server': 'TornadoServer/4.0.2',
+        'connection': 'keep-alive',
+        'etag': '"de2a7344fe6a9f09559b9b2fa46b767fd30e3634"',
+        'date': 'Tue, 09 Dec 2014 13:17:33 GMT',
+        'content-type': 'application/json'
+    }
+}
+
 SUCCESSFUL_PLAN_RESPONSE = {
     'content': '{"success":true}',
     'status_code': 200,
@@ -43,6 +71,8 @@ SUCCESSFUL_STOP_RESPONSE = {
 
 REQUEST_ID_TO_RESPONSE = {
     '1234': SUCCESSFUL_GET_RESPONSE,
+    '0000': REQUEST_ID_NOT_FOUND_RESPONSE,
+    '0110': PLANNING_IN_PROGRESS_RESPONSE,
     '4321': SUCCESSFUL_PLAN_RESPONSE,
     '3421': SUCCESSFUL_STOP_RESPONSE
 }

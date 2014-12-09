@@ -10,14 +10,15 @@ from optimoroute.api import (
     OptimoAPI, 
     Driver,
     Order,
-    RoutePlan
+    RoutePlan,
+    OptimoError
 )
 from optimoroute.api.util import OptimoEncoder
 
 
 @pytest.fixture
 def optimo_api():
-    return OptimoAPI('https://foo.bar.com', 'v1', 'foobarkey')
+    return OptimoAPI('https://foo.bar.com', 'foobarkey')
 
 
 @pytest.fixture
@@ -45,6 +46,16 @@ def route_plan():
     return routeplan
 
 
+def test_optimoapi_instantiation():
+    optimo_apiv1 = OptimoAPI('https://foo.bar.com', 'foobarkey')
+    assert optimo_apiv1.optimo_url == 'https://foo.bar.com'
+    assert optimo_apiv1.access_key == 'foobarkey'
+    assert optimo_apiv1.version == 'v1'
+
+    optimo_apiv2 = OptimoAPI('https://foo.bar.com', 'foobarkey', version='v2')
+    assert optimo_apiv2.version == 'v2'
+
+
 def test_successful_get(optimo_api):
     data = optimo_api.get('1234')
     assert data == {
@@ -66,6 +77,19 @@ def test_successful_get(optimo_api):
     }
 
 
+def test_unsuccessful_get(optimo_api):
+    with pytest.raises(OptimoError) as excinfo:
+        optimo_api.get('0000')
+
+    assert "Request with the requestId specified" in str(excinfo.value)
+    assert "was not found" in str(excinfo.value)
+
+
+def test_unsuccessful_get_planning_in_progress(optimo_api):
+    # When in progress we just return None instead of the results.
+    assert optimo_api.get('0110') is None
+
+
 def test_successful_plan(optimo_api, route_plan):
     assert route_plan.validate() is None
     # we need to do this because only the OptimoEncoder serializes correctly
@@ -79,3 +103,11 @@ def test_successful_plan(optimo_api, route_plan):
 
 def test_successful_stop(optimo_api):
     assert optimo_api.stop('3421') is None
+
+
+def test_unsuccessful_stop(optimo_api):
+    with pytest.raises(OptimoError) as excinfo:
+        optimo_api.stop('0000')
+
+    assert "Request with the requestId specified" in str(excinfo.value)
+    assert "was not found" in str(excinfo.value)
