@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
-from optimoroute.core.base import CoreOptimoAPI
-from optimoroute.api.util import OptimoEncoder
-from optimoroute.api.entities import RoutePlan
+
+from optimo.base import CoreOptimoAPI
+from .util import OptimoEncoder
+from .models import RoutePlan
 
 
 class OptimoError(Exception):

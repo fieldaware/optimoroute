@@ -1,4 +1,4 @@
-# OptimoRoute Python library
+# Optimo Python library
 
 This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 
@@ -24,7 +24,7 @@ Installation using `pip`:
 ```python
 from datetime import datetime
 from decimal import Decimal
-from optimoroute.api import OptimoAPI, Driver, WorkShift, Order, RoutePlan
+from optimo import OptimoAPI, Driver, WorkShift, Order, RoutePlan
 
 
 # Instantiate the interface to optimoroute's API.

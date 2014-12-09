@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
-import requests
 import json
 
-from optimoroute.core.util import CoreOptimoEncoder
+import os
+import requests
+
+from optimo.util import CoreOptimoEncoder
 
 
 ENDPOINT_METHODS = {

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-import datetime
-from decimal import Decimal
 import json
+import datetime
+
+from decimal import Decimal
+
+from models import BaseModel
 
 
 class CoreOptimoEncoder(json.JSONEncoder):
@@ -11,3 +14,10 @@ class CoreOptimoEncoder(json.JSONEncoder):
         if isinstance(o, Decimal):
             return float(o)
         return super(CoreOptimoEncoder, self).default(o)
+
+
+class OptimoEncoder(CoreOptimoEncoder):
+    def default(self, o):
+        if isinstance(o, BaseModel):
+            return o.as_optimo_schema()
+        return super(OptimoEncoder, self).default(o)

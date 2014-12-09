@@ -6,17 +6,13 @@ with open('README.md', 'r') as f:
     readme = f.read()
 
 packages = [
-    'optimoroute',
-    'optimoroute.core',
-    'optimoroute.core.schema',
-    'optimoroute.core.schema.v1',
-    'optimoroute.api',
+    'optimo',
     'tests'
 ]
 
 setup(
-    name="optimoroute",
-    version="0.0.1a1",
+    name="optimo",
+    version="0.0.1a2",
     install_requires=[
         "requests",
         "pytz",

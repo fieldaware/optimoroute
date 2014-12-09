@@ -4,16 +4,16 @@ import json
 
 import pytest
 
-from optimoroute.core.schema.v1 import RoutePlanValidator
-from optimoroute.api import (
+from tests.schema.v1 import RoutePlanValidator
+from optimo import (
     WorkShift,
-    OptimoAPI, 
+    OptimoAPI,
     Driver,
     Order,
     RoutePlan,
     OptimoError
 )
-from optimoroute.api.util import OptimoEncoder
+from optimo.util import OptimoEncoder
 
 
 @pytest.fixture
