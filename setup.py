@@ -15,21 +15,22 @@ packages = [
 ]
 
 setup(
-    name = "optimoroute",
-    version = "0.0.1a1",
+    name="optimoroute",
+    version="0.0.1a1",
     install_requires=[
         "requests",
         "pytz",
     ],
     tests_require=[
         "pytest",
-        "jsonschema==2.4.0"
+        "jsonschema==2.4.0",
+        "pytest-cov",
     ],
-    author = "George Spanos",
-    author_email = "spanosgeorge@gmail.com",
-    description = "A python library for OptimoRoute's web service",
-    license = "BSD",
-    url = "https://github.com/fieldaware/optimoroute",
+    author="George Spanos",
+    author_email="spanosgeorge@gmail.com",
+    description="A python library for OptimoRoute's web service",
+    license="BSD",
+    url="https://github.com/fieldaware/optimoroute",
     packages=packages,
     long_description=readme,
     classifiers=[
