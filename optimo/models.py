@@ -157,14 +157,14 @@ class Break(BaseModel):
     def validate(self):
         cls_name = self.__class__.__name__
         if not isinstance(self.start_break, datetime.datetime):
-            raise TypeError("'{}.start_from' must be a datetime.datetime "
-                            "instance".format(cls_name))
+            raise TypeError("'{}.start_break' must be of type datetime."
+                            "datetime".format(cls_name))
         if not isinstance(self.end_break, datetime.datetime):
-            raise TypeError("'{}.start_to' must be a datetime.datetime "
-                            "instance".format(cls_name))
+            raise TypeError("'{}.end_break' must be of type datetime.datetime"
+                            .format(cls_name))
 
         if not isinstance(self.duration, (int, long)):
-            raise TypeError("'{}.duration' must be an integer")
+            raise TypeError("'{}.duration' must be of type int".format(cls_name))
 
     def as_optimo_schema(self):
         self.validate()
@@ -186,19 +186,20 @@ class WorkShift(BaseModel):
     def validate(self):
         cls_name = self.__class__.__name__
         if not isinstance(self.start_work, datetime.datetime):
-            raise TypeError("'{}.work_from' must be a datetime.datetime "
-                            "instance".format(cls_name))
+            raise TypeError("'{}.start_work' must be of type datetime.datetime"
+                            .format(cls_name))
         if not isinstance(self.end_work, datetime.datetime):
-            raise TypeError("'{}.work_to' must be a datetime.datetime "
-                            "instance".format(cls_name))
+            raise TypeError("'{}.end_work' must be of type datetime.datetime"
+                            .format(cls_name))
 
         if self.allowed_overtime is not None:
             if not isinstance(self.allowed_overtime, (int, long)):
-                raise TypeError("'{}.allowed_overtime' must an integer".format(cls_name))
+                raise TypeError("'{}.allowed_overtime' must be of type int".
+                                format(cls_name))
 
         if self.break_ is not None:
             if not isinstance(self.break_, Break):
-                raise TypeError("{}.break_ must of type Break".format(cls_name))
+                raise TypeError("'{}.break_' must be of type Break".format(cls_name))
             self.break_.validate()
 
     def as_optimo_schema(self):
@@ -256,10 +257,10 @@ class Driver(BaseModel):
     def validate(self):
         cls_name = self.__class__.__name__
         if not isinstance(self.id, basestring):
-            raise TypeError("'id' must be of type str")
+            raise TypeError("'{}.id' must be of type str".format(cls_name))
         else:
             if not self.id:
-                raise ValueError("'id' cannot be empty")
+                raise ValueError("'{}.id' cannot be empty".format(cls_name))
 
         if not isinstance(self.start_lat, Number):
             raise TypeError(

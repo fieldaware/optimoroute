@@ -4,7 +4,6 @@ import json
 
 import pytest
 
-from tests.schema.v1 import RoutePlanValidator
 from optimo import (
     WorkShift,
     OptimoAPI,
@@ -14,6 +13,8 @@ from optimo import (
     OptimoError
 )
 from optimo.util import OptimoEncoder
+
+from tests.schema.v1 import RoutePlanValidator
 
 
 @pytest.fixture
