@@ -56,21 +56,21 @@ class TimeWindow(BaseModel):
         cls_name = self.__class__.__name__
         if not isinstance(self.start_time, datetime.datetime):
             raise TypeError(
-                "'{}.time_from' must be of type datetime.datetime"
+                "'{}.start_time' must be of type datetime.datetime"
                 .format(cls_name)
             )
 
         if not isinstance(self.end_time, datetime.datetime):
             raise TypeError(
-                "'{}.time_to' must be of type datetime.datetime"
+                "'{}.end_time' must be of type datetime.datetime"
                 .format(cls_name)
             )
 
     def as_optimo_schema(self):
         self.validate()
         return {
-            'startTime': self.start_time,
-            'endTime': self.end_time
+            'timeFrom': self.start_time,
+            'timeTo': self.end_time
         }
 
 
@@ -96,9 +96,9 @@ class Order(BaseModel):
             raise ValueError("'{}.id' cannot be empty".format(cls_name))
 
         if not isinstance(self.lat, Number):
-            raise TypeError("'{}.lat' must be a number".format(cls_name))
+            raise TypeError("'{}.lat' must be of type Number".format(cls_name))
         if not isinstance(self.lng, Number):
-            raise TypeError("'{}.lng' must be a number".format(cls_name))
+            raise TypeError("'{}.lng' must be of type Number".format(cls_name))
 
         if not isinstance(self.duration, (int, long)):
             raise TypeError("'{}.duration' must be of type int".format(cls_name))
