@@ -108,8 +108,8 @@ class Order(BaseModel):
         if self.time_window is not None:
             if not isinstance(self.time_window, TimeWindow):
                 raise TypeError(
-                    "'{}.time_window' must be of type {!r}"
-                    .format(cls_name, TimeWindow)
+                    "'{}.time_window' must be of type {}"
+                    .format(cls_name, 'TimeWindow')
                 )
 
         if not isinstance(self.priority, basestring):
@@ -118,9 +118,32 @@ class Order(BaseModel):
             )
         if self.priority not in ('L', 'M', 'H', 'C'):
             raise ValueError(
-                "'{}'.priority must be one of ('L', 'M', 'H', 'C')"
+                "'{}.priority' must be one of ('L', 'M', 'H', 'C')"
                 .format(cls_name)
             )
+
+        if not isinstance(self.skills, list):
+            raise TypeError("'{}.skills' must be of type list".format(cls_name))
+        else:
+            for skill in self.skills:
+                if not isinstance(skill, basestring):
+                    raise TypeError(
+                        "'{}.skills' must contain elements of type str"
+                        .format(cls_name)
+                    )
+
+        if self.assigned_to is not None:
+            if not isinstance(self.assigned_to, basestring):
+                raise TypeError(
+                    "'{}.assigned_to' must be of type str".format(cls_name)
+                )
+
+        if self.scheduling_info is not None:
+            if not isinstance(self.scheduling_info, SchedulingInfo):
+                raise TypeError(
+                    "'{}.scheduling_info' must be of type SchedulingInfo".
+                    format(cls_name)
+                )
 
     def as_optimo_schema(self):
         self.validate()
@@ -177,11 +200,12 @@ class Break(BaseModel):
 
 class WorkShift(BaseModel):
 
-    def __init__(self, start_work, end_work):
+    def __init__(self, start_work, end_work, unavailable_times=None):
         self.start_work = start_work
         self.end_work = end_work
         self.allowed_overtime = None
         self.break_ = None
+        self.unavailable_times = unavailable_times or []
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -202,6 +226,19 @@ class WorkShift(BaseModel):
                 raise TypeError("'{}.break_' must be of type Break".format(cls_name))
             self.break_.validate()
 
+        if not isinstance(self.unavailable_times, list):
+            raise TypeError(
+                "'{}.unavailable_times' must be of type list".format(cls_name)
+            )
+        else:
+            for ut in self.unavailable_times:
+                if not isinstance(ut, UnavailableTime):
+                    raise TypeError(
+                        "'{}.unavailable_times' must contain elements of type "
+                        "{}".format(cls_name, 'UnavailableTime')
+                    )
+                ut.validate()
+
     def as_optimo_schema(self):
         self.validate()
         d = {
@@ -215,6 +252,9 @@ class WorkShift(BaseModel):
         if self.break_:
             d['break'] = self.break_
 
+        if self.unavailable_times:
+            d['unavailableTimes'] = self.unavailable_times
+
         return d
 
 
@@ -227,11 +267,11 @@ class UnavailableTime(BaseModel):
     def validate(self):
         cls_name = self.__class__.__name__
         if not isinstance(self.start_time, datetime.datetime):
-            raise TypeError("'{}.time_from' must be a datetime.datetime "
-                            "instance".format(cls_name))
+            raise TypeError("'{}.start_time' must be of type datetime.datetime"
+                            .format(cls_name))
         if not isinstance(self.end_time, datetime.datetime):
-            raise TypeError("'{}.time_to' must be a datetime.datetime "
-                            "instance".format(cls_name))
+            raise TypeError("'{}.end_time' must be of type datetime.datetime"
+                            .format(cls_name))
 
     def as_optimo_schema(self):
         self.validate()
@@ -244,7 +284,7 @@ class UnavailableTime(BaseModel):
 class Driver(BaseModel):
 
     def __init__(self, id, start_lat, start_lng, end_lat, end_lng,
-                 work_shifts=None):
+                 work_shifts=None, skills=None):
 
         self.id = id
         self.start_lat = start_lat
@@ -252,7 +292,7 @@ class Driver(BaseModel):
         self.end_lat = end_lat
         self.end_lng = end_lng
         self.work_shifts = work_shifts or []
-        self.unavailable_times = []
+        self.skills = skills or []
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -264,20 +304,20 @@ class Driver(BaseModel):
 
         if not isinstance(self.start_lat, Number):
             raise TypeError(
-                "'{}.start_lat' must be a number".format(cls_name)
+                "'{}.start_lat' must be of type Number".format(cls_name)
             )
         if not isinstance(self.start_lng, Number):
             raise TypeError(
-                "'{}.start_lng' must be a number".format(cls_name)
+                "'{}.start_lng' must be of type Number".format(cls_name)
             )
 
         if not isinstance(self.end_lat, Number):
             raise TypeError(
-                "'{}.end_lat' must be a number".format(cls_name)
+                "'{}.end_lat' must be of type Number".format(cls_name)
             )
         if not isinstance(self.end_lng, Number):
             raise TypeError(
-                "'{}.end_lng' must be a number".format(cls_name)
+                "'{}.end_lng' must be of type Number".format(cls_name)
             )
 
         if not isinstance(self.work_shifts, list):
@@ -287,28 +327,28 @@ class Driver(BaseModel):
         else:
             if not self.work_shifts:
                 raise ValueError(
-                    "'{}.work_shifts' must have at least 1 "
+                    "'{}.work_shifts' must contain at least 1 "
                     "element".format(cls_name)
                 )
             for ws in self.work_shifts:
                 if not isinstance(ws, WorkShift):
-                    raise ValueError("'{}.work_shifts' must contain elements of"
-                                     " type {!r}".format(cls_name, WorkShift))
+                    raise TypeError(
+                        "'{}.work_shifts' must contain elements of type {}"
+                        .format(cls_name, 'WorkShift')
+                    )
                 ws.validate()
 
-        if not isinstance(self.unavailable_times, list):
+        if not isinstance(self.skills, list):
             raise TypeError(
-                "'{}.unavailable_times' must be of type "
-                "list".format(cls_name)
+                "'{}.skills' must be of type list".format(cls_name)
             )
         else:
-            for ut in self.unavailable_times:
-                if not isinstance(ut, UnavailableTime):
-                    raise ValueError(
-                        "'{}.unavailable_times' must contain elements of type "
-                        "{!r}".format(cls_name, UnavailableTime)
+            for skill in self.skills:
+                if not isinstance(skill, basestring):
+                    raise TypeError(
+                        "'{}.skills' must contain elements of type str"
+                        .format(cls_name)
                     )
-                ut.validate()
 
     def as_optimo_schema(self):
         self.validate()
@@ -318,11 +358,9 @@ class Driver(BaseModel):
             'startLon': self.start_lng,
             'endLat': self.end_lat,
             'endLon': self.end_lng,
-            'workShifts': self.work_shifts
+            'workShifts': self.work_shifts,
+            'skills': self.skills
         }
-
-        if self.unavailable_times:
-            d['unavailableTimes'] = self.unavailable_times
         return d
 
 

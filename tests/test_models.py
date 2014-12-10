@@ -10,7 +10,8 @@ from optimo import (
     RoutePlan,
     Break,
     SchedulingInfo,
-    TimeWindow
+    TimeWindow,
+    UnavailableTime,
 )
 from optimo.util import OptimoEncoder
 from tests.schema.v1 import (
@@ -21,7 +22,7 @@ from tests.schema.v1 import (
     UnavailableTimeValidator,
     WorkShiftValidator,
     SchedulingInfoValidator,
-    TimeWindowValidator
+    TimeWindowValidator,
 )
 
 
@@ -97,13 +98,34 @@ def test_workshift():
     ws = WorkShift(dt, dt)
     ws.allowed_overtime = 2
     ws.break_ = Break(dt, dt, 5)
+    ws.unavailable_times = 3
+    with pytest.raises(TypeError) as excinfo:
+        ws.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'unavailable_times', 'list')
+    assert err_msg == str(excinfo.value)
+
+    ws = WorkShift(dt, dt)
+    ws.allowed_overtime = 2
+    ws.break_ = Break(dt, dt, 5)
+    ws.unavailable_times = [3]
+    with pytest.raises(TypeError) as excinfo:
+        ws.validate()
+    err_msg = "'{}.unavailable_times' must contain elements of type " \
+              "UnavailableTime".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    ws = WorkShift(dt, dt)
+    ws.allowed_overtime = 2
+    ws.break_ = Break(dt, dt, 5)
+    ws.unavailable_times = [UnavailableTime(dt, dt)]
     assert ws.validate() is None
-    assert jsonify(ws) == '{"workTimeFrom": "2014-12-05T08:00", "break": ' \
-                          '{"breakStartTo": "2014-12-05T08:00", ' \
+    assert jsonify(ws) == '{"workTimeFrom": "2014-12-05T08:00", ' \
+                          '"break": {"breakStartTo": "2014-12-05T08:00", ' \
                           '"breakStartFrom": "2014-12-05T08:00", ' \
-                          '"breakDuration": 5}, ' \
-                          '"workTimeTo": "2014-12-05T08:00", ' \
-                          '"allowedOvertime": 2}'
+                          '"breakDuration": 5}, "unavailableTimes": ' \
+                          '[{"timeFrom": "2014-12-05T08:00", "timeTo": ' \
+                          '"2014-12-05T08:00"}], "workTimeTo": ' \
+                          '"2014-12-05T08:00", "allowedOvertime": 2}'
 
     assert WorkShiftValidator.validate(dictify(ws)) is None
 
@@ -196,7 +218,158 @@ def test_order():
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5.2, 6.1, 7)
+    order.time_window = 'Foo'
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', 'int')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'time_window', 'TimeWindow')
     assert err_msg == str(excinfo.value)
+
+    dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
+    order = Order('3', 5.2, 6.1, 7)
+    order.time_window = TimeWindow(dt, dt)
+    order.priority = 3
+    with pytest.raises(TypeError) as excinfo:
+        order.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'priority', 'str')
+    assert err_msg == str(excinfo.value)
+
+    order = Order('3', 5.2, 6.1, 7)
+    order.time_window = TimeWindow(dt, dt)
+    order.priority = 'F'
+    with pytest.raises(ValueError) as excinfo:
+        order.validate()
+    err_msg = "'{}.{}' must be one of {}".format(cls_name, 'priority',
+                                                 "('L', 'M', 'H', 'C')")
+    assert err_msg == str(excinfo.value)
+
+    order = Order('3', 5.2, 6.1, 7)
+    order.time_window = TimeWindow(dt, dt)
+    order.skills = ['handy', 3]
+    with pytest.raises(TypeError) as excinfo:
+        order.validate()
+    err_msg = "'{}.skills' must contain elements of type str".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    order = Order('3', 5.2, 6.1, 7)
+    order.time_window = TimeWindow(dt, dt)
+    order.skills = ['handy', 'quiet']
+    order.assigned_to = 4
+    with pytest.raises(TypeError) as excinfo:
+        order.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'assigned_to', 'str')
+    assert err_msg == str(excinfo.value)
+
+    order = Order('3', 5.2, 6.1, 7)
+    order.time_window = TimeWindow(dt, dt)
+    order.skills = ['handy', 'quiet']
+    order.assigned_to = 'Tom & Jerry'
+    order.scheduling_info = 45
+    with pytest.raises(TypeError) as excinfo:
+        order.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduling_info', 'SchedulingInfo')
+    assert err_msg == str(excinfo.value)
+
+    order = Order('3', 5.2, 6.1, 7)
+    order.time_window = TimeWindow(dt, dt)
+    order.skills = ['handy', 'quiet']
+    order.assigned_to = 'Tom & Jerry'
+    order.scheduling_info = SchedulingInfo(dt, 'rantanplan')
+    assert order.validate() is None
+    assert OrderValidator.validate(dictify(order)) is None
+
+
+def test_unavailable_time():
+    cls_name = UnavailableTime.__name__
+
+    ut = UnavailableTime(1, 2)
+    with pytest.raises(TypeError) as excinfo:
+        ut.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_time', 'datetime.datetime')
+    assert err_msg == str(excinfo.value)
+
+    dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
+
+    ut = UnavailableTime(dt, 2)
+    with pytest.raises(TypeError) as excinfo:
+        ut.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_time', 'datetime.datetime')
+    assert err_msg == str(excinfo.value)
+
+    ut = UnavailableTime(dt, dt)
+    assert ut.validate() is None
+    assert UnavailableTimeValidator.validate(dictify(ut)) is None
+
+
+def test_driver():
+    cls_name = Driver.__name__
+
+    drv = Driver(3, '3', '4', '4', '5')
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'id', 'str')
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', '3', '4', '4', '5')
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lat', 'Number')
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, '4', '4', '5')
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lng', 'Number')
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, 4, '4', '5')
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lat', 'Number')
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, 4, 4, 5)
+    drv.work_shifts = 4
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'work_shifts', 'list')
+    assert err_msg == str(excinfo.value)
+
+    dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
+
+    drv = Driver('3', 3, 4, 4, 5)
+    drv.work_shifts = []
+    with pytest.raises(ValueError) as excinfo:
+        drv.validate()
+    err_msg = "'{}.work_shifts' must contain at least 1 element".\
+        format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, 4, 4, 5)
+    drv.work_shifts = [3]
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = "'{}.work_shifts' must contain elements of type WorkShift".\
+        format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, 4, 4, 5)
+    drv.work_shifts = [WorkShift(dt, dt)]
+    drv.skills = 3
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'skills', 'list')
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, 4, 4, 5)
+    drv.work_shifts = [WorkShift(dt, dt)]
+    drv.skills = [2]
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = "'{}.skills' must contain elements of type str".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, 4, 4, 5)
+    drv.work_shifts = [WorkShift(dt, dt)]
+    drv.skills = ['calm', 'angry']
+    assert drv.validate() is None
+    assert DriverValidator.validate(dictify(drv)) is None
