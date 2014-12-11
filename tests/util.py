@@ -57,6 +57,19 @@ SUCCESSFUL_PLAN_RESPONSE = {
     }
 }
 
+UNSUCCESSFUL_PLAN_RESPONSE = {
+    'content': '{"message":"an internal server error occured",'
+               '"code":"ERR_INTERNAL","success":false}',
+    'status_code': 500,
+    'headers': {
+        'date': 'Mon, 08 Dec 2014 10:36:03 GMT',
+        'content-length': '16',
+        'content-type': 'application/json',
+        'connection': 'keep-alive',
+        'server': 'TornadoServer/4.0.2'
+    }
+}
+
 SUCCESSFUL_STOP_RESPONSE = {
     'content': '{"success":true}',
     'status_code': 200,
@@ -74,7 +87,8 @@ REQUEST_ID_TO_RESPONSE = {
     '0000': REQUEST_ID_NOT_FOUND_RESPONSE,
     '0110': PLANNING_IN_PROGRESS_RESPONSE,
     '4321': SUCCESSFUL_PLAN_RESPONSE,
-    '3421': SUCCESSFUL_STOP_RESPONSE
+    '3421': SUCCESSFUL_STOP_RESPONSE,
+    '666': UNSUCCESSFUL_PLAN_RESPONSE,
 }
 
 

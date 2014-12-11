@@ -13,6 +13,7 @@ from optimo import (
     TimeWindow,
     UnavailableTime,
 )
+from optimo.models import BaseModel
 from optimo.util import OptimoEncoder
 from tests.schema.v1 import (
     BreakValidator,
@@ -217,6 +218,12 @@ def test_order():
     err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', 'int')
     assert err_msg == str(excinfo.value)
 
+    order = Order('3', 5, 6, -1)
+    with pytest.raises(ValueError) as excinfo:
+        order.validate()
+    err_msg = "'{}.duration' cannot be negative".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
     order = Order('3', 5.2, 6.1, 7)
     order.time_window = 'Foo'
     with pytest.raises(TypeError) as excinfo:
@@ -240,6 +247,14 @@ def test_order():
         order.validate()
     err_msg = "'{}.{}' must be one of {}".format(cls_name, 'priority',
                                                  "('L', 'M', 'H', 'C')")
+    assert err_msg == str(excinfo.value)
+
+    order = Order('3', 5.2, 6.1, 7)
+    order.time_window = TimeWindow(dt, dt)
+    order.skills = 'handy'
+    with pytest.raises(TypeError) as excinfo:
+        order.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'skills', 'list')
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5.2, 6.1, 7)
@@ -275,6 +290,14 @@ def test_order():
     order.assigned_to = 'Tom & Jerry'
     order.scheduling_info = SchedulingInfo(dt, 'rantanplan')
     assert order.validate() is None
+    assert jsonify(order) == '{"assignedTo": "Tom & Jerry", "skills": ' \
+                             '["handy", "quiet"], "tw": {"timeFrom": ' \
+                             '"2014-12-05T08:00", "timeTo": ' \
+                             '"2014-12-05T08:00"}, "lon": 6.1, "priority": ' \
+                             '"M", "duration": 7, "lat": 5.2, ' \
+                             '"schedulingInfo": {"scheduledAt": ' \
+                             '"2014-12-05T08:00", "scheduledDriver": ' \
+                             '"rantanplan", "locked": false}, "id": "3"}'
     assert OrderValidator.validate(dictify(order)) is None
 
 
@@ -297,6 +320,8 @@ def test_unavailable_time():
 
     ut = UnavailableTime(dt, dt)
     assert ut.validate() is None
+    assert jsonify(ut) == '{"timeFrom": "2014-12-05T08:00", ' \
+                          '"timeTo": "2014-12-05T08:00"}'
     assert UnavailableTimeValidator.validate(dictify(ut)) is None
 
 
@@ -307,6 +332,12 @@ def test_driver():
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
     err_msg = TYPE_ERR_MSG.format(cls_name, 'id', 'str')
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('', '3', '4', '4', '5')
+    with pytest.raises(ValueError) as excinfo:
+        drv.validate()
+    err_msg = "'{}.id' cannot be empty".format(cls_name)
     assert err_msg == str(excinfo.value)
 
     drv = Driver('3', '3', '4', '4', '5')
@@ -325,6 +356,12 @@ def test_driver():
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
     err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lat', 'Number')
+    assert err_msg == str(excinfo.value)
+
+    drv = Driver('3', 3, 4, 4, '5')
+    with pytest.raises(TypeError) as excinfo:
+        drv.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lng', 'Number')
     assert err_msg == str(excinfo.value)
 
     drv = Driver('3', 3, 4, 4, 5)
@@ -372,4 +409,159 @@ def test_driver():
     drv.work_shifts = [WorkShift(dt, dt)]
     drv.skills = ['calm', 'angry']
     assert drv.validate() is None
+    assert jsonify(drv) == '{"endLon": 5, "skills": ["calm", "angry"], ' \
+                           '"endLat": 4, "startLat": 3, "workShifts": ' \
+                           '[{"workTimeFrom": "2014-12-05T08:00", ' \
+                           '"workTimeTo": "2014-12-05T08:00"}], ' \
+                           '"startLon": 4, "id": "3"}'
     assert DriverValidator.validate(dictify(drv)) is None
+
+
+@pytest.fixture
+def orders():
+    dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
+
+    order1 = Order('3', 5.2, 6.1, 7)
+    order1.time_window = TimeWindow(dt, dt)
+    order1.skills = ['handy', 'quiet']
+    order1.assigned_to = 'Tom & Jerry'
+    order1.scheduling_info = SchedulingInfo(dt, 'rantanplan')
+
+    order2 = Order('4', 5.2, 6.1, 7)
+    order2.time_window = TimeWindow(dt, dt)
+    order2.skills = ['barista', 'terrorista']
+    order2.assigned_to = 'Sam & Max'
+    order2.scheduling_info = SchedulingInfo(dt, 'rantanplan')
+    return order1, order2
+
+
+@pytest.fixture
+def drivers():
+    dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
+
+    drv1 = Driver('3', 3, 4, 4, 5)
+    drv1.work_shifts = [WorkShift(dt, dt)]
+    drv1.skills = ['calm', 'angry']
+
+    drv2 = Driver('4', 3, 4, 4, 5)
+    drv2.work_shifts = [WorkShift(dt, dt)]
+    drv2.skills = ['pirate', 'ninja']
+    return drv1, drv2
+
+
+def test_routeplan(orders, drivers):
+    cls_name = RoutePlan.__name__
+
+    routeplan = RoutePlan(1234, 4, 4)
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'request_id', 'str')
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('', 4, 4)
+    with pytest.raises(ValueError) as excinfo:
+        routeplan.validate()
+    err_msg = "'{}.request_id' cannot be an empty string".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 4, 4)
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'callback_url', 'str')
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 4)
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'status_callback_url', 'str')
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = 4
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'orders', 'list')
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = []
+    with pytest.raises(ValueError) as excinfo:
+        routeplan.validate()
+    err_msg = "'{}.orders' must have at least 1 element".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = [3]
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = "'{}.orders' must contain elements of type Order".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = list(orders)
+    routeplan.drivers = 3
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'drivers', 'list')
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = list(orders)
+    routeplan.drivers = []
+    with pytest.raises(ValueError) as excinfo:
+        routeplan.validate()
+    err_msg = "'{}.drivers' must have at least 1 element".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = list(orders)
+    routeplan.drivers = [3]
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = "'{}.drivers' must contain elements of type Driver".\
+        format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = list(orders)
+    routeplan.drivers = list(drivers)
+    routeplan.no_load_capacities = 'HA'
+    with pytest.raises(TypeError) as excinfo:
+        routeplan.validate()
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'no_load_capacities', 'int')
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = list(orders)
+    routeplan.drivers = list(drivers)
+    routeplan.no_load_capacities = 5
+    with pytest.raises(ValueError) as excinfo:
+        routeplan.validate()
+    err_msg = "'{}.no_load_capacities' must be between 0-4".format(cls_name)
+    assert err_msg == str(excinfo.value)
+
+    routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+    routeplan.orders = list(orders)
+    routeplan.drivers = list(drivers)
+    routeplan.no_load_capacities = 3
+    assert routeplan.validate() is None
+    assert jsonify(routeplan) == \
+        '{"noLoadCapacities": 3, "statusCallback": "somestatusurl", ' \
+        '"drivers": [{"endLon": 5, "skills": ["calm", "angry"], "endLat": 4, ' \
+        '"startLat": 3, "workShifts": [{"workTimeFrom": "2014-12-05T08:00", ' \
+        '"workTimeTo": "2014-12-05T08:00"}], "startLon": 4, "id": "3"}, ' \
+        '{"endLon": 5, "skills": ["pirate", "ninja"], "endLat": 4, ' \
+        '"startLat": 3, "workShifts": [{"workTimeFrom": "2014-12-05T08:00", ' \
+        '"workTimeTo": "2014-12-05T08:00"}], "startLon": 4, "id": "4"}], ' \
+        '"callback": "someurl", "requestId": "1234", "orders": ' \
+        '[{"assignedTo": "Tom & Jerry", "skills": ["handy", "quiet"], "tw": ' \
+        '{"timeFrom": "2014-12-05T08:00", "timeTo": "2014-12-05T08:00"}, ' \
+        '"lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2, ' \
+        '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", ' \
+        '"scheduledDriver": "rantanplan", "locked": false}, "id": "3"}, ' \
+        '{"assignedTo": "Sam & Max", "skills": ["barista", "terrorista"], ' \
+        '"tw": {"timeFrom": "2014-12-05T08:00", "timeTo": ' \
+        '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, ' \
+        '"lat": 5.2, "schedulingInfo": {"scheduledAt": "2014-12-05T08:00", ' \
+        '"scheduledDriver": "rantanplan", "locked": false}, "id": "4"}]}'
+    assert RoutePlanValidator.validate(dictify(routeplan)) is None

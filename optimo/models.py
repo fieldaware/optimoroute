@@ -9,11 +9,13 @@ class BaseModel(object):
 
     @abc.abstractmethod
     def validate(self):
-        pass
+        """Must return None or raise a validation error"""
 
     @abc.abstractmethod
     def as_optimo_schema(self):
-        pass
+        """Must return a dict with the key names as expected from optimoroute's
+        JSON schema.
+        """
 
 
 class SchedulingInfo(BaseModel):
@@ -368,20 +370,29 @@ class RoutePlan(BaseModel):
 
     def __init__(self, request_id, callback_url, status_callback_url,
                  orders=None, drivers=None):
+        # TODO: support for serviceRegions and optimizationParamaters
         self.request_id = request_id
         self.callback_url = callback_url
+        self.status_callback_url = status_callback_url
         self.orders = orders or []
         self.drivers = drivers or []
-        self.status_callback_url = status_callback_url
         self.no_load_capacities = None
-        self.optimization_parameters = None
 
     def validate(self):
         cls_name = self.__class__.__name__
         if not isinstance(self.request_id, basestring):
-            raise TypeError("'{}.request_id' must be of type str".format(cls_name))
+            raise TypeError("'{}.request_id' must be of type str".
+                            format(cls_name))
         if not self.request_id:
             raise ValueError("'{}.request_id' cannot be an empty string".format(cls_name))
+
+        if not isinstance(self.callback_url, basestring):
+            raise TypeError("'{}.callback_url' must be of type str".
+                            format(cls_name))
+
+        if not isinstance(self.status_callback_url, basestring):
+            raise TypeError("'{}.status_callback_url' must be of type str".
+                            format(cls_name))
 
         if not isinstance(self.orders, list):
             raise TypeError("'{}.orders' must be of type list".format(cls_name))
@@ -390,8 +401,8 @@ class RoutePlan(BaseModel):
         else:
             for order in self.orders:
                 if not isinstance(order, Order):
-                    raise TypeError("'{}.drivers' must contain elements of "
-                                    "type {!r}".format(cls_name, Order))
+                    raise TypeError("'{}.orders' must contain elements of "
+                                    "type {}".format(cls_name, 'Order'))
                 order.validate()
 
         if not isinstance(self.drivers, list):
@@ -402,27 +413,29 @@ class RoutePlan(BaseModel):
             for drv in self.drivers:
                 if not isinstance(drv, Driver):
                     raise TypeError("'{}.drivers' must contain elements of type"
-                                    " {!r}".format(cls_name, Driver))
+                                    " {}".format(cls_name, 'Driver'))
                 drv.validate()
-
-        if self.status_callback_url is not None:
-            if not isinstance(self.status_callback_url, basestring):
-                raise TypeError("'{}.status_callback_url' must be of type str".format(cls_name))
 
         if self.no_load_capacities is not None:
             if not isinstance(self.no_load_capacities, (int, long)):
-                raise TypeError("'{}.no_load_capacities' must be of type integer".format(cls_name))
+                raise TypeError("'{}.no_load_capacities' must be of type int".
+                                format(cls_name))
             else:
-                if 0 <= self.no_load_capacities <= 4:
-                    raise ValueError("'{}.no_load_capacities' must be between 0-4".format(cls_name))
+                if self.no_load_capacities < 0 or self.no_load_capacities > 4:
+                    raise ValueError(
+                        "'{}.no_load_capacities' must be between 0-4".
+                        format(cls_name)
+                    )
 
     def as_optimo_schema(self):
         self.validate()
         d = {
             'requestId': self.request_id,
             'callback': self.callback_url,
+            'statusCallback': self.status_callback_url,
             'orders': self.orders,
             'drivers': self.drivers,
-            'statusCallback': self.status_callback_url,
         }
+        if self.no_load_capacities:
+            d['noLoadCapacities'] = self.no_load_capacities
         return d

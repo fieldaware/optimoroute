@@ -10,14 +10,14 @@ This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 
 # Requirements
 
-* Python (has only been tested with python 2.7.*)
+* Python (has only been tested with python 2.7)
 * An access key provided to you by [OptimoRoute][optimoroute.com]
 
 # Installation
 
 Installation using `pip`:
 
-    pip install optimoroute
+    pip install optimo
 
 # Usage
 

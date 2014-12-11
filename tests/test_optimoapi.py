@@ -102,6 +102,18 @@ def test_successful_plan(optimo_api, route_plan):
     assert optimo_api.plan(route_plan) is None
 
 
+def test_unsuccessful_plan(optimo_api, route_plan):
+    route_plan.request_id = '666'
+
+    with pytest.raises(OptimoError) as excinfo:
+        optimo_api.plan(route_plan)
+
+
+def test_wrong_routeplan_type(optimo_api):
+    with pytest.raises(TypeError):
+        optimo_api.plan(5)
+
+
 def test_successful_stop(optimo_api):
     assert optimo_api.stop('3421') is None
 

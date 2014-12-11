@@ -13,7 +13,6 @@ class CoreOptimoEncoder(json.JSONEncoder):
             return o.strftime('%Y-%m-%dT%H:%M')
         if isinstance(o, Decimal):
             return float(o)
-        return super(CoreOptimoEncoder, self).default(o)
 
 
 class OptimoEncoder(CoreOptimoEncoder):
