@@ -17,7 +17,7 @@ from optimo.util import OptimoEncoder
 from tests.schema.v1 import RoutePlanValidator
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def optimo_api():
     return OptimoAPI('https://foo.bar.com', 'foobarkey')
 
