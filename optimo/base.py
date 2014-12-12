@@ -109,7 +109,7 @@ class CoreOptimoAPI(object):
         :param data: dictionary with route plan data as expected by optimoroute
         :param headers: dictionary of additional custom headers
         :param encoder:
-        :return:
+        :return: dictionary containing the server's raw response
         """
         resp_dict = self.do_request('plan_routes', data=data, headers=headers,
                                     encoder=encoder)
