@@ -13,8 +13,8 @@ from optimo import (
     TimeWindow,
     UnavailableTime,
 )
-from optimo.models import BaseModel
 from optimo.util import OptimoEncoder
+
 from tests.schema.v1 import (
     BreakValidator,
     DriverValidator,
