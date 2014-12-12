@@ -4,7 +4,7 @@ This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 
 ---
 
-**Note**: This is not yet intended for production usage. It is currently in Pre-Alpha development status. Use at your own risk.
+**Note**: This is not yet intended for production usage. It is currently in Alpha development status. Use at your own risk.
  
 ---
 
@@ -12,7 +12,7 @@ This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 
 * Python (has only been tested with python 2.7)
 * An access key provided to you by [OptimoRoute][optimoroute.com]
-
+ 
 # Installation
 
 Installation using `pip`:
@@ -103,12 +103,6 @@ data = optimo_api.get('1234')
 # exceptions will be raised, it will return None implying it was successful.
 optimo_api.stop('1234')
 ```
-
-
-# Todo
-
-* Provide 100% test coverage
-* Add docstrings to every function/class.
 
 
 [optimoroute.com]: http://optimoroute.com
