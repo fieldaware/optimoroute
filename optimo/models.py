@@ -5,15 +5,20 @@ from numbers import Number
 
 
 class BaseModel(object):
+    """Abstract base class that all OptimoRoute entities must subclass"""
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def validate(self):
-        """Must return None or raise a validation error"""
+        """It must replicate the validation according to the JSON schema
+        provided by OptimoRoute.
+
+        Must return None or raise a validation error
+        """
 
     @abc.abstractmethod
     def as_optimo_schema(self):
-        """Must return a dict with the key names as expected from optimoroute's
+        """Must return a dict with the key names as expected from OptimoRoute's
         JSON schema.
         """
 
