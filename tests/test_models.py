@@ -491,7 +491,7 @@ class TestRoutePlan(object):
         order2.scheduling_info = SchedulingInfo(dtime, 'rantanplan')
         return order1, order2
 
-    @pytest.fixture(scope='module')
+    @pytest.fixture
     def drivers(self):
         drv1 = Driver('3', 3, 4, 4, 5)
         drv1.work_shifts = [WorkShift(dtime, dtime)]

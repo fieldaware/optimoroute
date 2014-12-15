@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 packages = [
     'optimo',
-    'tests'
+    'tests',
 ]
 
 setup(

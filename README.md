@@ -35,7 +35,7 @@ optimo_api = OptimoAPI('https://api.optimoroute.com', 'some_access_key')
 # Create a workshift for the driver.
 ws = WorkShift(
     start_work=datetime(year=2014, month=12, day=5, hour=8, minute=0), 
-    end_work=datetime(year=2014, month=12, day=5, hour=14, minute=0)
+    end_work=datetime(year=2014, month=12, day=5, hour=14, minute=0),
 )
 
 # Create the driver and also pass the workshift we created above.
@@ -45,21 +45,21 @@ drv = Driver(
     start_lng=Decimal('-6.274655'), 
     end_lat=Decimal('53.341191'), 
     end_lng=Decimal('-6.260402'),
-    work_shifts=[ws]
+    work_shifts=[ws],
 )
 
 order1 = Order(
     id='123', 
     lat=Decimal('53.343204'), 
     lng=Decimal('-6.269798'), 
-    duration=20
+    duration=20,
 )
 
 order2 = Order(
     id='456', 
     lat=Decimal('53.341820'), 
     lng=Decimal('-6.264991'), 
-    duration=25
+    duration=25,
 )
 
 # Create the route plan, and also pass the orders and the driver created above.
@@ -70,7 +70,7 @@ routeplan = RoutePlan(
     callback_url='https://callback.com/1234',
     status_callback_url='https://status.callback.com/1234',
     drivers=[drv],
-    orders=[order1, order2]
+    orders=[order1, order2],
 )
 
 # Start the plan optimization. If there is no exception raised then we assume
