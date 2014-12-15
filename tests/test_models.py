@@ -2,6 +2,7 @@
 import json
 import pytest
 from datetime import datetime
+from numbers import Number
 
 from optimo import (
     WorkShift,
@@ -30,7 +31,7 @@ from tests.schema.v1 import (
 jsonify = lambda o: json.dumps(o, cls=OptimoEncoder)
 dictify = lambda o: json.loads(jsonify(o))
 
-TYPE_ERR_MSG = "'{}.{}' must be of type {}"
+TYPE_ERR_MSG = "'{}.{}' must be of type {!r}, not {!r}"
 
 
 def test_break():
@@ -40,19 +41,24 @@ def test_break():
     brk = Break(3, 4, 5)
     with pytest.raises(TypeError) as excinfo:
         brk.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_break', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(
+        cls_name,
+        'start_break',
+        datetime,
+        int
+    )
     assert err_msg == str(excinfo.value)
 
     brk = Break(dt, 4, 5)
     with pytest.raises(TypeError) as excinfo:
         brk.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_break', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_break', datetime, int)
     assert err_msg == str(excinfo.value)
 
     brk = Break(dt, dt, 5.5)
     with pytest.raises(TypeError) as excinfo:
         brk.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', 'int')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', int, float)
     assert err_msg == str(excinfo.value)
 
     brk = Break(dt, dt, 5)
@@ -71,21 +77,21 @@ def test_workshift():
     ws = WorkShift(3, 4)
     with pytest.raises(TypeError) as excinfo:
         ws.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_work', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_work', datetime, int)
     assert err_msg == str(excinfo.value)
 
     dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
     ws = WorkShift(dt, 3)
     with pytest.raises(TypeError) as excinfo:
         ws.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_work', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_work', datetime, int)
     assert err_msg == str(excinfo.value)
 
     ws = WorkShift(dt, dt)
     ws.allowed_overtime = 2.5
     with pytest.raises(TypeError) as excinfo:
         ws.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'allowed_overtime', 'int')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'allowed_overtime', int, float)
     assert err_msg == str(excinfo.value)
 
     ws = WorkShift(dt, dt)
@@ -93,7 +99,7 @@ def test_workshift():
     ws.break_ = 42
     with pytest.raises(TypeError) as excinfo:
         ws.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'break_', 'Break')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'break_', Break, int)
     assert err_msg == str(excinfo.value)
 
     ws = WorkShift(dt, dt)
@@ -102,7 +108,7 @@ def test_workshift():
     ws.unavailable_times = 3
     with pytest.raises(TypeError) as excinfo:
         ws.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'unavailable_times', 'list')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'unavailable_times', list, int)
     assert err_msg == str(excinfo.value)
 
     ws = WorkShift(dt, dt)
@@ -138,19 +144,24 @@ def test_scheduling_info():
     si = SchedulingInfo(1, 1)
     with pytest.raises(TypeError) as excinfo:
         si.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_at', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(
+        cls_name,
+        'scheduled_at',
+        datetime,
+        int
+    )
     assert err_msg == str(excinfo.value)
 
     si = SchedulingInfo(dt, 1)
     with pytest.raises(TypeError) as excinfo:
         si.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', str, int)
     assert err_msg == str(excinfo.value)
 
     si = SchedulingInfo(dt, 'bobos', locked=4)
     with pytest.raises(TypeError) as excinfo:
         si.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'locked', 'bool')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'locked', bool, int)
     assert err_msg == str(excinfo.value)
 
     si = SchedulingInfo(dt, 'bobos')
@@ -168,13 +179,13 @@ def test_time_window():
     tw = TimeWindow(2, 3)
     with pytest.raises(TypeError) as excinfo:
         tw.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_time', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_time', datetime, int)
     assert err_msg == str(excinfo.value)
 
     tw = TimeWindow(dt, 3)
     with pytest.raises(TypeError) as excinfo:
         tw.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_time', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_time', datetime, int)
     assert err_msg == str(excinfo.value)
 
     tw = TimeWindow(dt, dt)
@@ -191,7 +202,7 @@ def test_order():
     order = Order(3, 5, 6, 7)
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'id', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'id', str, int)
     assert err_msg == str(excinfo.value)
 
     order = Order('', '5', '6', '7')
@@ -203,19 +214,19 @@ def test_order():
     order = Order('3', '5', '6', '7')
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'lat', 'Number')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'lat', Number, str)
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5, '6', '7')
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'lng', 'Number')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'lng', Number, str)
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5, 6, '7')
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', 'int')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', int, str)
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5, 6, -1)
@@ -228,7 +239,7 @@ def test_order():
     order.time_window = 'Foo'
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'time_window', 'TimeWindow')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'time_window', TimeWindow, str)
     assert err_msg == str(excinfo.value)
 
     dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
@@ -237,7 +248,7 @@ def test_order():
     order.priority = 3
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'priority', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'priority', str, int)
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5.2, 6.1, 7)
@@ -254,7 +265,7 @@ def test_order():
     order.skills = 'handy'
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'skills', 'list')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'skills', list, str)
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5.2, 6.1, 7)
@@ -271,7 +282,7 @@ def test_order():
     order.assigned_to = 4
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'assigned_to', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'assigned_to', str, int)
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5.2, 6.1, 7)
@@ -281,7 +292,7 @@ def test_order():
     order.scheduling_info = 45
     with pytest.raises(TypeError) as excinfo:
         order.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduling_info', 'SchedulingInfo')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduling_info', SchedulingInfo, int)
     assert err_msg == str(excinfo.value)
 
     order = Order('3', 5.2, 6.1, 7)
@@ -307,7 +318,7 @@ def test_unavailable_time():
     ut = UnavailableTime(1, 2)
     with pytest.raises(TypeError) as excinfo:
         ut.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_time', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_time', datetime, int)
     assert err_msg == str(excinfo.value)
 
     dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
@@ -315,7 +326,7 @@ def test_unavailable_time():
     ut = UnavailableTime(dt, 2)
     with pytest.raises(TypeError) as excinfo:
         ut.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_time', 'datetime.datetime')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_time', datetime, int)
     assert err_msg == str(excinfo.value)
 
     ut = UnavailableTime(dt, dt)
@@ -331,7 +342,7 @@ def test_driver():
     drv = Driver(3, '3', '4', '4', '5')
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'id', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'id', str, int)
     assert err_msg == str(excinfo.value)
 
     drv = Driver('', '3', '4', '4', '5')
@@ -343,32 +354,32 @@ def test_driver():
     drv = Driver('3', '3', '4', '4', '5')
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lat', 'Number')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lat', Number, str)
     assert err_msg == str(excinfo.value)
 
     drv = Driver('3', 3, '4', '4', '5')
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lng', 'Number')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lng', Number, str)
     assert err_msg == str(excinfo.value)
 
     drv = Driver('3', 3, 4, '4', '5')
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lat', 'Number')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lat', Number, str)
     assert err_msg == str(excinfo.value)
 
     drv = Driver('3', 3, 4, 4, '5')
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lng', 'Number')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lng', Number, str)
     assert err_msg == str(excinfo.value)
 
     drv = Driver('3', 3, 4, 4, 5)
     drv.work_shifts = 4
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'work_shifts', 'list')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'work_shifts', list, int)
     assert err_msg == str(excinfo.value)
 
     dt = datetime(year=2014, month=12, day=5, hour=8, minute=0)
@@ -394,7 +405,7 @@ def test_driver():
     drv.skills = 3
     with pytest.raises(TypeError) as excinfo:
         drv.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'skills', 'list')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'skills', list, int)
     assert err_msg == str(excinfo.value)
 
     drv = Driver('3', 3, 4, 4, 5)
@@ -455,7 +466,7 @@ def test_routeplan(orders, drivers):
     routeplan = RoutePlan(1234, 4, 4)
     with pytest.raises(TypeError) as excinfo:
         routeplan.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'request_id', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'request_id', str, int)
     assert err_msg == str(excinfo.value)
 
     routeplan = RoutePlan('', 4, 4)
@@ -467,20 +478,20 @@ def test_routeplan(orders, drivers):
     routeplan = RoutePlan('1234', 4, 4)
     with pytest.raises(TypeError) as excinfo:
         routeplan.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'callback_url', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'callback_url', str, int)
     assert err_msg == str(excinfo.value)
 
     routeplan = RoutePlan('1234', 'someurl', 4)
     with pytest.raises(TypeError) as excinfo:
         routeplan.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'status_callback_url', 'str')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'status_callback_url', str, int)
     assert err_msg == str(excinfo.value)
 
     routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
     routeplan.orders = 4
     with pytest.raises(TypeError) as excinfo:
         routeplan.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'orders', 'list')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'orders', list, int)
     assert err_msg == str(excinfo.value)
 
     routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
@@ -502,7 +513,7 @@ def test_routeplan(orders, drivers):
     routeplan.drivers = 3
     with pytest.raises(TypeError) as excinfo:
         routeplan.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'drivers', 'list')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'drivers', list, int)
     assert err_msg == str(excinfo.value)
 
     routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
@@ -528,7 +539,7 @@ def test_routeplan(orders, drivers):
     routeplan.no_load_capacities = 'HA'
     with pytest.raises(TypeError) as excinfo:
         routeplan.validate()
-    err_msg = TYPE_ERR_MSG.format(cls_name, 'no_load_capacities', 'int')
+    err_msg = TYPE_ERR_MSG.format(cls_name, 'no_load_capacities', int, str)
     assert err_msg == str(excinfo.value)
 
     routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')

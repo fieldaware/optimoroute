@@ -54,9 +54,7 @@ class OptimoAPI(object):
         route_plan.validate()
         raw_response = self.core_api.plan_routes(route_plan, encoder=encoder)
         data, status_code = parse_response(raw_response)
-        if data['success'] is True:
-            return
-        else:
+        if not data['success']:
             raise OptimoError(data['message'])
 
     def stop(self, request_id):
@@ -70,9 +68,7 @@ class OptimoAPI(object):
         payload = {'requestId': request_id}
         raw_response = self.core_api.stop_planning(payload)
         data, status_code = parse_response(raw_response)
-        if data['success'] is True:
-            return
-        else:
+        if not data['success']:
             raise OptimoError(data['message'])
 
     def get(self, request_id):

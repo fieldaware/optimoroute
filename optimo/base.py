@@ -88,7 +88,7 @@ class CoreOptimoAPI(object):
         :return: dictionary containing the server's raw response
         """
         method = ENDPOINT_METHODS[endpoint]
-        url = os.path.join(self.base_url, self.version, endpoint)
+        url = u'/'.join([self.base_url, self.version, endpoint])
         params = {'key': self.access_key}
 
         if method == 'GET':
@@ -100,7 +100,6 @@ class CoreOptimoAPI(object):
                 data = json.dumps(data, cls=encoder)
 
         resp_dict = self.raw_request(url, method, params, data, headers)
-        # TODO: handle errors if content isn't json (status 500, etc)
         return resp_dict
 
     def plan_routes(self, data, headers=None, encoder=CoreOptimoEncoder):

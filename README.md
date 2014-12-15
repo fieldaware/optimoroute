@@ -68,7 +68,7 @@ order2 = Order(
 routeplan = RoutePlan(
     request_id='1234',
     callback_url='https://callback.com/1234',
-    status_callback_url='https://status.callback.com/1234'
+    status_callback_url='https://status.callback.com/1234',
     drivers=[drv],
     orders=[order1, order2]
 )
