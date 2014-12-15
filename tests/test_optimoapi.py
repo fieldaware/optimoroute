@@ -10,7 +10,7 @@ from optimo import (
     Driver,
     Order,
     RoutePlan,
-    OptimoError
+    OptimoError,
 )
 from optimo.util import OptimoEncoder
 

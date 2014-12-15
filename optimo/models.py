@@ -41,7 +41,7 @@ class SchedulingInfo(BaseModel):
                     cls_name,
                     'scheduled_at',
                     datetime.datetime,
-                    type(self.scheduled_at)
+                    type(self.scheduled_at),
                 )
             )
 
@@ -51,7 +51,7 @@ class SchedulingInfo(BaseModel):
                     cls_name,
                     'scheduled_driver',
                     str,
-                    type(self.scheduled_driver)
+                    type(self.scheduled_driver),
                 )
             )
 
@@ -61,7 +61,7 @@ class SchedulingInfo(BaseModel):
                     cls_name,
                     'locked',
                     bool,
-                    type(self.locked)
+                    type(self.locked),
                 )
             )
 
@@ -70,7 +70,7 @@ class SchedulingInfo(BaseModel):
         return {
             'scheduledAt': self.scheduled_at,
             'scheduledDriver': self.scheduled_driver,
-            'locked': self.locked
+            'locked': self.locked,
         }
 
 
@@ -87,7 +87,7 @@ class TimeWindow(BaseModel):
                     cls_name,
                     'start_time',
                     datetime.datetime,
-                    type(self.start_time)
+                    type(self.start_time),
                 )
             )
 
@@ -97,7 +97,7 @@ class TimeWindow(BaseModel):
                     cls_name,
                     'end_time',
                     datetime.datetime,
-                    type(self.end_time)
+                    type(self.end_time),
                 )
             )
 
@@ -105,7 +105,7 @@ class TimeWindow(BaseModel):
         self.validate()
         return {
             'timeFrom': self.start_time,
-            'timeTo': self.end_time
+            'timeTo': self.end_time,
         }
 
 
@@ -147,7 +147,7 @@ class Order(BaseModel):
                     cls_name,
                     'duration',
                     int,
-                    type(self.duration)
+                    type(self.duration),
                 )
             )
         if self.duration < 0:
@@ -160,7 +160,7 @@ class Order(BaseModel):
                         cls_name,
                         'time_window',
                         TimeWindow,
-                        type(self.time_window)
+                        type(self.time_window),
                     )
                 )
 
@@ -170,7 +170,7 @@ class Order(BaseModel):
                     cls_name,
                     'priority',
                     str,
-                    type(self.priority)
+                    type(self.priority),
                 )
             )
         if self.priority not in ('L', 'M', 'H', 'C'):
@@ -208,7 +208,7 @@ class Order(BaseModel):
                         cls_name,
                         'scheduling_info',
                         SchedulingInfo,
-                        type(self.scheduling_info)
+                        type(self.scheduling_info),
                     )
                 )
 
@@ -252,7 +252,7 @@ class Break(BaseModel):
                     cls_name,
                     'start_break',
                     datetime.datetime,
-                    type(self.start_break)
+                    type(self.start_break),
                 )
             )
         if not isinstance(self.end_break, datetime.datetime):
@@ -261,7 +261,7 @@ class Break(BaseModel):
                     cls_name,
                     'end_break',
                     datetime.datetime,
-                    type(self.end_break)
+                    type(self.end_break),
                 )
             )
 
@@ -271,7 +271,7 @@ class Break(BaseModel):
                     cls_name,
                     'duration',
                     int,
-                    type(self.duration)
+                    type(self.duration),
                 )
             )
 
@@ -280,7 +280,7 @@ class Break(BaseModel):
         return {
             'breakStartFrom': self.start_break,
             'breakStartTo': self.end_break,
-            'breakDuration': self.duration
+            'breakDuration': self.duration,
         }
 
 
@@ -302,7 +302,7 @@ class WorkShift(BaseModel):
                     cls_name,
                     'start_work',
                     datetime.datetime,
-                    type(self.start_work)
+                    type(self.start_work),
                 )
             )
         if not isinstance(self.end_work, datetime.datetime):
@@ -311,7 +311,7 @@ class WorkShift(BaseModel):
                     cls_name,
                     'end_work',
                     datetime.datetime,
-                    type(self.end_work)
+                    type(self.end_work),
                 )
             )
 
@@ -322,7 +322,7 @@ class WorkShift(BaseModel):
                         cls_name,
                         'allowed_overtime',
                         int,
-                        type(self.allowed_overtime)
+                        type(self.allowed_overtime),
                     )
                 )
 
@@ -333,7 +333,7 @@ class WorkShift(BaseModel):
                         cls_name,
                         'break_',
                         Break,
-                        type(self.break_)
+                        type(self.break_),
                     )
                 )
             self.break_.validate()
@@ -344,7 +344,7 @@ class WorkShift(BaseModel):
                     cls_name,
                     'unavailable_times',
                     list,
-                    type(self.unavailable_times)
+                    type(self.unavailable_times),
                 )
             )
         else:
@@ -389,7 +389,7 @@ class UnavailableTime(BaseModel):
                     cls_name,
                     'start_time',
                     datetime.datetime,
-                    type(self.start_time)
+                    type(self.start_time),
                 )
             )
         if not isinstance(self.end_time, datetime.datetime):
@@ -398,7 +398,7 @@ class UnavailableTime(BaseModel):
                     cls_name,
                     'end_time',
                     datetime.datetime,
-                    type(self.end_time)
+                    type(self.end_time),
                 )
             )
 
@@ -439,7 +439,7 @@ class Driver(BaseModel):
                     cls_name,
                     'start_lat',
                     Number,
-                    type(self.start_lat)
+                    type(self.start_lat),
                 )
             )
         if not isinstance(self.start_lng, Number):
@@ -448,7 +448,7 @@ class Driver(BaseModel):
                     cls_name,
                     'start_lng',
                     Number,
-                    type(self.start_lng)
+                    type(self.start_lng),
                 )
             )
 
@@ -458,7 +458,7 @@ class Driver(BaseModel):
                     cls_name,
                     'end_lat',
                     Number,
-                    type(self.end_lat)
+                    type(self.end_lat),
                 )
             )
         if not isinstance(self.end_lng, Number):
@@ -467,7 +467,7 @@ class Driver(BaseModel):
                     cls_name,
                     'end_lng',
                     Number,
-                    type(self.end_lng)
+                    type(self.end_lng),
                 )
             )
 
@@ -477,7 +477,7 @@ class Driver(BaseModel):
                     cls_name,
                     'work_shifts',
                     list,
-                    type(self.work_shifts)
+                    type(self.work_shifts),
                 )
             )
         else:
@@ -500,7 +500,7 @@ class Driver(BaseModel):
                     cls_name,
                     'skills',
                     list,
-                    type(self.skills)
+                    type(self.skills),
                 )
             )
         else:
@@ -520,7 +520,7 @@ class Driver(BaseModel):
             'endLat': self.end_lat,
             'endLon': self.end_lng,
             'workShifts': self.work_shifts,
-            'skills': self.skills
+            'skills': self.skills,
         }
         return d
 
@@ -547,7 +547,7 @@ class RoutePlan(BaseModel):
                     cls_name,
                     'request_id',
                     str,
-                    type(self.request_id)
+                    type(self.request_id),
                 )
             )
         if not self.request_id:
@@ -559,7 +559,7 @@ class RoutePlan(BaseModel):
                     cls_name,
                     'callback_url',
                     str,
-                    type(self.callback_url)
+                    type(self.callback_url),
                 )
             )
 
@@ -569,7 +569,7 @@ class RoutePlan(BaseModel):
                     cls_name,
                     'status_callback_url',
                     str,
-                    type(self.status_callback_url)
+                    type(self.status_callback_url),
                 )
             )
 
@@ -579,7 +579,7 @@ class RoutePlan(BaseModel):
                     cls_name,
                     'orders',
                     list,
-                    type(self.orders)
+                    type(self.orders),
                 )
             )
         if not self.orders:
@@ -597,7 +597,7 @@ class RoutePlan(BaseModel):
                     cls_name,
                     'drivers',
                     list,
-                    type(self.drivers)
+                    type(self.drivers),
                 )
             )
         if not self.drivers:
@@ -616,7 +616,7 @@ class RoutePlan(BaseModel):
                         cls_name,
                         'no_load_capacities',
                         int,
-                        type(self.no_load_capacities)
+                        type(self.no_load_capacities),
                     )
                 )
             else:

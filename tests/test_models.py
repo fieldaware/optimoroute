@@ -627,4 +627,3 @@ class TestRoutePlan(object):
             '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", ' \
             '"scheduledDriver": "rantanplan", "locked": false}, "id": "4"}]}'
         assert RoutePlanValidator.validate(dictify(routeplan)) is None
-

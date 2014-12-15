@@ -49,7 +49,10 @@ class OptimoAPI(object):
                  with an appropriate error message.
         """
         if not isinstance(route_plan, RoutePlan):
-            raise TypeError("Must be of type {!r}".format(RoutePlan))
+            raise TypeError(
+                "Must be of type {!r}, not {!r}"
+                .format(RoutePlan, type(route_plan))
+            )
 
         route_plan.validate()
         raw_response = self.core_api.plan_routes(route_plan, encoder=encoder)
