@@ -22,9 +22,18 @@ class BaseModel(object):
         JSON schema.
         """
 
+    def validate_type(self, attr, expected):
+        type_error_msg = "'{}.{}' must be of type {!r}, not {!r}"
+        value = getattr(self, attr)
+
+        if not isinstance(value, expected):
+            cls_name = self.__class__.__name__
+            raise TypeError(
+                type_error_msg.format(cls_name, attr, expected, type(value))
+            )
+
 
 ITERABLES = (list, tuple)
-TYPE_ERROR_MSG = "'{}.{}' must be of type {!r}, not {!r}"
 
 
 class SchedulingInfo(BaseModel):
@@ -34,36 +43,9 @@ class SchedulingInfo(BaseModel):
         self.locked = locked
 
     def validate(self):
-        cls_name = self.__class__.__name__
-        if not isinstance(self.scheduled_at, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'scheduled_at',
-                    datetime.datetime,
-                    type(self.scheduled_at),
-                )
-            )
-
-        if not isinstance(self.scheduled_driver, basestring):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'scheduled_driver',
-                    str,
-                    type(self.scheduled_driver),
-                )
-            )
-
-        if not isinstance(self.locked, bool):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'locked',
-                    bool,
-                    type(self.locked),
-                )
-            )
+        self.validate_type('scheduled_at', datetime.datetime)
+        self.validate_type('scheduled_driver', str)
+        self.validate_type('locked', bool)
 
     def as_optimo_schema(self):
         self.validate()
@@ -80,26 +62,8 @@ class TimeWindow(BaseModel):
         self.end_time = end_time
 
     def validate(self):
-        cls_name = self.__class__.__name__
-        if not isinstance(self.start_time, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'start_time',
-                    datetime.datetime,
-                    type(self.start_time),
-                )
-            )
-
-        if not isinstance(self.end_time, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'end_time',
-                    datetime.datetime,
-                    type(self.end_time),
-                )
-            )
+        self.validate_type('start_time', datetime.datetime)
+        self.validate_type('end_time', datetime.datetime)
 
     def as_optimo_schema(self):
         self.validate()
@@ -125,92 +89,40 @@ class Order(BaseModel):
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.id, basestring):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(cls_name, 'id', str, type(self.id))
-            )
+        self.validate_type('id', str)
         if not self.id:
             raise ValueError("'{}.id' cannot be empty".format(cls_name))
 
-        if not isinstance(self.lat, Number):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(cls_name, 'lat', Number, type(self.lat))
-            )
-        if not isinstance(self.lng, Number):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(cls_name, 'lng', Number, type(self.lng))
-            )
+        self.validate_type('lat', Number)
+        self.validate_type('lng', Number)
 
-        if not isinstance(self.duration, (int, long)):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'duration',
-                    int,
-                    type(self.duration),
-                )
-            )
+        self.validate_type('duration', (int, long))
         if self.duration < 0:
             raise ValueError("'{}.duration' cannot be negative".format(cls_name))
 
         if self.time_window is not None:
-            if not isinstance(self.time_window, TimeWindow):
-                raise TypeError(
-                    TYPE_ERROR_MSG.format(
-                        cls_name,
-                        'time_window',
-                        TimeWindow,
-                        type(self.time_window),
-                    )
-                )
+            self.validate_type('time_window', TimeWindow)
 
-        if not isinstance(self.priority, basestring):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'priority',
-                    str,
-                    type(self.priority),
-                )
-            )
+        self.validate_type('priority', basestring)
         if self.priority not in ('L', 'M', 'H', 'C'):
             raise ValueError(
                 "'{}.priority' must be one of ('L', 'M', 'H', 'C')"
                 .format(cls_name)
             )
 
-        if not isinstance(self.skills, ITERABLES):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name, 'skills', list, type(self.skills)
+        self.validate_type('skills', ITERABLES)
+        for skill in self.skills:
+            if not isinstance(skill, basestring):
+                raise TypeError(
+                    "'{}.skills' must contain elements of type str"
+                    .format(cls_name)
                 )
-            )
-        else:
-            for skill in self.skills:
-                if not isinstance(skill, basestring):
-                    raise TypeError(
-                        "'{}.skills' must contain elements of type str"
-                        .format(cls_name)
-                    )
 
         if self.assigned_to is not None:
-            if not isinstance(self.assigned_to, basestring):
-                raise TypeError(
-                    TYPE_ERROR_MSG.format(
-                        cls_name, 'assigned_to', str, type(self.assigned_to)
-                    )
-                )
+            self.validate_type('assigned_to', basestring)
 
         if self.scheduling_info is not None:
-            if not isinstance(self.scheduling_info, SchedulingInfo):
-                raise TypeError(
-                    TYPE_ERROR_MSG.format(
-                        cls_name,
-                        'scheduling_info',
-                        SchedulingInfo,
-                        type(self.scheduling_info),
-                    )
-                )
+            self.validate_type('scheduling_info', SchedulingInfo)
 
     def as_optimo_schema(self):
         self.validate()
@@ -245,35 +157,9 @@ class Break(BaseModel):
         self.duration = duration
 
     def validate(self):
-        cls_name = self.__class__.__name__
-        if not isinstance(self.start_break, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'start_break',
-                    datetime.datetime,
-                    type(self.start_break),
-                )
-            )
-        if not isinstance(self.end_break, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'end_break',
-                    datetime.datetime,
-                    type(self.end_break),
-                )
-            )
-
-        if not isinstance(self.duration, (int, long)):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'duration',
-                    int,
-                    type(self.duration),
-                )
-            )
+        self.validate_type('start_break', datetime.datetime)
+        self.validate_type('end_break', datetime.datetime)
+        self.validate_type('duration', (int, long))
 
     def as_optimo_schema(self):
         self.validate()
@@ -296,65 +182,24 @@ class WorkShift(BaseModel):
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.start_work, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'start_work',
-                    datetime.datetime,
-                    type(self.start_work),
-                )
-            )
-        if not isinstance(self.end_work, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'end_work',
-                    datetime.datetime,
-                    type(self.end_work),
-                )
-            )
+        self.validate_type('start_work', datetime.datetime)
+        self.validate_type('end_work', datetime.datetime)
 
         if self.allowed_overtime is not None:
-            if not isinstance(self.allowed_overtime, (int, long)):
-                raise TypeError(
-                    TYPE_ERROR_MSG.format(
-                        cls_name,
-                        'allowed_overtime',
-                        int,
-                        type(self.allowed_overtime),
-                    )
-                )
+            self.validate_type('allowed_overtime', (int, long))
 
         if self.break_ is not None:
-            if not isinstance(self.break_, Break):
-                raise TypeError(
-                    TYPE_ERROR_MSG.format(
-                        cls_name,
-                        'break_',
-                        Break,
-                        type(self.break_),
-                    )
-                )
+            self.validate_type('break_', Break)
             self.break_.validate()
 
-        if not isinstance(self.unavailable_times, ITERABLES):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'unavailable_times',
-                    list,
-                    type(self.unavailable_times),
+        self.validate_type('unavailable_times', ITERABLES)
+        for ut in self.unavailable_times:
+            if not isinstance(ut, UnavailableTime):
+                raise TypeError(
+                    "'{}.unavailable_times' must contain elements of type "
+                    "{}".format(cls_name, 'UnavailableTime')
                 )
-            )
-        else:
-            for ut in self.unavailable_times:
-                if not isinstance(ut, UnavailableTime):
-                    raise TypeError(
-                        "'{}.unavailable_times' must contain elements of type "
-                        "{}".format(cls_name, 'UnavailableTime')
-                    )
-                ut.validate()
+            ut.validate()
 
     def as_optimo_schema(self):
         self.validate()
@@ -382,25 +227,8 @@ class UnavailableTime(BaseModel):
         self.end_time = end_time
 
     def validate(self):
-        cls_name = self.__class__.__name__
-        if not isinstance(self.start_time, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'start_time',
-                    datetime.datetime,
-                    type(self.start_time),
-                )
-            )
-        if not isinstance(self.end_time, datetime.datetime):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'end_time',
-                    datetime.datetime,
-                    type(self.end_time),
-                )
-            )
+        self.validate_type('start_time', datetime.datetime)
+        self.validate_type('end_time', datetime.datetime)
 
     def as_optimo_schema(self):
         self.validate()
@@ -425,91 +253,37 @@ class Driver(BaseModel):
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.id, basestring):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(cls_name, 'id', str, type(self.id))
-            )
-        else:
-            if not self.id:
-                raise ValueError("'{}.id' cannot be empty".format(cls_name))
+        self.validate_type('id', basestring)
+        if not self.id:
+            raise ValueError("'{}.id' cannot be empty".format(cls_name))
 
-        if not isinstance(self.start_lat, Number):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'start_lat',
-                    Number,
-                    type(self.start_lat),
-                )
-            )
-        if not isinstance(self.start_lng, Number):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'start_lng',
-                    Number,
-                    type(self.start_lng),
-                )
-            )
+        self.validate_type('start_lat', Number)
+        self.validate_type('start_lng', Number)
 
-        if not isinstance(self.end_lat, Number):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'end_lat',
-                    Number,
-                    type(self.end_lat),
-                )
-            )
-        if not isinstance(self.end_lng, Number):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'end_lng',
-                    Number,
-                    type(self.end_lng),
-                )
-            )
+        self.validate_type('end_lat', Number)
+        self.validate_type('end_lng', Number)
 
-        if not isinstance(self.work_shifts, ITERABLES):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'work_shifts',
-                    list,
-                    type(self.work_shifts),
-                )
+        self.validate_type('work_shifts', ITERABLES)
+        if not self.work_shifts:
+            raise ValueError(
+                "'{}.work_shifts' must contain at least 1 "
+                "element".format(cls_name)
             )
-        else:
-            if not self.work_shifts:
-                raise ValueError(
-                    "'{}.work_shifts' must contain at least 1 "
-                    "element".format(cls_name)
+        for ws in self.work_shifts:
+            if not isinstance(ws, WorkShift):
+                raise TypeError(
+                    "'{}.work_shifts' must contain elements of type {}"
+                    .format(cls_name, 'WorkShift')
                 )
-            for ws in self.work_shifts:
-                if not isinstance(ws, WorkShift):
-                    raise TypeError(
-                        "'{}.work_shifts' must contain elements of type {}"
-                        .format(cls_name, 'WorkShift')
-                    )
-                ws.validate()
+            ws.validate()
 
-        if not isinstance(self.skills, ITERABLES):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'skills',
-                    list,
-                    type(self.skills),
+        self.validate_type('skills', ITERABLES)
+        for skill in self.skills:
+            if not isinstance(skill, basestring):
+                raise TypeError(
+                    "'{}.skills' must contain elements of type str"
+                    .format(cls_name)
                 )
-            )
-        else:
-            for skill in self.skills:
-                if not isinstance(skill, basestring):
-                    raise TypeError(
-                        "'{}.skills' must contain elements of type str"
-                        .format(cls_name)
-                    )
 
     def as_optimo_schema(self):
         self.validate()
@@ -541,47 +315,15 @@ class RoutePlan(BaseModel):
 
     def validate(self):
         cls_name = self.__class__.__name__
-        if not isinstance(self.request_id, basestring):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'request_id',
-                    str,
-                    type(self.request_id),
-                )
-            )
+        self.validate_type('request_id', basestring)
         if not self.request_id:
             raise ValueError("'{}.request_id' cannot be an empty string".format(cls_name))
 
-        if not isinstance(self.callback_url, basestring):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'callback_url',
-                    str,
-                    type(self.callback_url),
-                )
-            )
+        self.validate_type('callback_url', basestring)
 
-        if not isinstance(self.status_callback_url, basestring):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'status_callback_url',
-                    str,
-                    type(self.status_callback_url),
-                )
-            )
+        self.validate_type('status_callback_url', basestring)
 
-        if not isinstance(self.orders, ITERABLES):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'orders',
-                    list,
-                    type(self.orders),
-                )
-            )
+        self.validate_type('orders', ITERABLES)
         if not self.orders:
             raise ValueError("'{}.orders' must have at least 1 element".format(cls_name))
         else:
@@ -591,15 +333,7 @@ class RoutePlan(BaseModel):
                                     "type {}".format(cls_name, 'Order'))
                 order.validate()
 
-        if not isinstance(self.drivers, ITERABLES):
-            raise TypeError(
-                TYPE_ERROR_MSG.format(
-                    cls_name,
-                    'drivers',
-                    list,
-                    type(self.drivers),
-                )
-            )
+        self.validate_type('drivers', ITERABLES)
         if not self.drivers:
             raise ValueError("'{}.drivers' must have at least 1 element".format(cls_name))
         else:
@@ -610,22 +344,13 @@ class RoutePlan(BaseModel):
                 drv.validate()
 
         if self.no_load_capacities is not None:
-            if not isinstance(self.no_load_capacities, (int, long)):
-                raise TypeError(
-                    TYPE_ERROR_MSG.format(
-                        cls_name,
-                        'no_load_capacities',
-                        int,
-                        type(self.no_load_capacities),
-                    )
+            self.validate_type('no_load_capacities', (int, long))
+            if (self.no_load_capacities < self.NO_LOAD_CAPACITIES_MIN or
+                    self.no_load_capacities > self.NO_LOAD_CAPACITIES_MAX):
+                raise ValueError(
+                    "'{}.no_load_capacities' must be between 0-4".
+                    format(cls_name)
                 )
-            else:
-                if (self.no_load_capacities < self.NO_LOAD_CAPACITIES_MIN or
-                        self.no_load_capacities > self.NO_LOAD_CAPACITIES_MAX):
-                    raise ValueError(
-                        "'{}.no_load_capacities' must be between 0-4".
-                        format(cls_name)
-                    )
 
     def as_optimo_schema(self):
         self.validate()

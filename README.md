@@ -5,7 +5,7 @@ This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 ---
 
 **Note**: This is not yet intended for production usage. It is currently in Alpha development status. Use at your own risk.
- 
+
 ---
 
 [![Build Status](https://travis-ci.org/fieldaware/optimoroute.svg?branch=master)](https://travis-ci.org/fieldaware/optimoroute)
@@ -14,7 +14,7 @@ This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 
 * Python (has only been tested with python 2.7)
 * An access key provided to you by [OptimoRoute][optimoroute.com]
- 
+
 # Installation
 
 Installation using `pip`:
@@ -34,36 +34,36 @@ optimo_api = OptimoAPI('https://api.optimoroute.com', 'some_access_key')
 
 # Create a workshift for the driver.
 ws = WorkShift(
-    start_work=datetime(year=2014, month=12, day=5, hour=8, minute=0), 
+    start_work=datetime(year=2014, month=12, day=5, hour=8, minute=0),
     end_work=datetime(year=2014, month=12, day=5, hour=14, minute=0),
 )
 
 # Create the driver and also pass the workshift we created above.
 drv = Driver(
-    id='123', 
-    start_lat=Decimal('53.350046'), 
-    start_lng=Decimal('-6.274655'), 
-    end_lat=Decimal('53.341191'), 
+    id='123',
+    start_lat=Decimal('53.350046'),
+    start_lng=Decimal('-6.274655'),
+    end_lat=Decimal('53.341191'),
     end_lng=Decimal('-6.260402'),
     work_shifts=[ws],
 )
 
 order1 = Order(
-    id='123', 
-    lat=Decimal('53.343204'), 
-    lng=Decimal('-6.269798'), 
+    id='123',
+    lat=Decimal('53.343204'),
+    lng=Decimal('-6.269798'),
     duration=20,
 )
 
 order2 = Order(
-    id='456', 
-    lat=Decimal('53.341820'), 
-    lng=Decimal('-6.264991'), 
+    id='456',
+    lat=Decimal('53.341820'),
+    lng=Decimal('-6.264991'),
     duration=25,
 )
 
 # Create the route plan, and also pass the orders and the driver created above.
-# The 'request_id' is the one we'll use later to check the results of the 
+# The 'request_id' is the one we'll use later to check the results of the
 # plan optimization.
 routeplan = RoutePlan(
     request_id='1234',
@@ -81,7 +81,7 @@ optimo_api.plan(routeplan)
 # optimoroute previously.
 data = optimo_api.get('1234')
 
-# If the optimization has finished we can see the result. Otherwise the data 
+# If the optimization has finished we can see the result. Otherwise the data
 # will be None.
 {
     u'creationTime': u'2014-12-04T17:01:52',
