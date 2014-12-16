@@ -241,8 +241,8 @@ class UnavailableTime(BaseModel):
 class Driver(BaseModel):
 
     def __init__(self, id, start_lat, start_lng, end_lat, end_lng,
-                 work_shifts=None, skills=None):
-        # TODO: support speed_factor
+                 work_shifts=None, skills=None, speed_factor=None):
+
         self.id = id
         self.start_lat = start_lat
         self.start_lng = start_lng
@@ -250,6 +250,7 @@ class Driver(BaseModel):
         self.end_lng = end_lng
         self.work_shifts = work_shifts or []
         self.skills = skills or []
+        self.speed_factor = speed_factor
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -285,6 +286,9 @@ class Driver(BaseModel):
                     .format(cls_name)
                 )
 
+        if self.speed_factor is not None:
+            self.validate_type('speed_factor', Number)
+
     def as_optimo_schema(self):
         self.validate()
         d = {
@@ -296,6 +300,8 @@ class Driver(BaseModel):
             'workShifts': self.work_shifts,
             'skills': self.skills,
         }
+        if self.speed_factor:
+            d['speedFactor'] = self.speed_factor
         return d
 
 

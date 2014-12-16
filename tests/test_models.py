@@ -462,16 +462,27 @@ class TestDriver(object):
         err_msg = "'{}.skills' must contain elements of type str".format(cls_name)
         assert err_msg == str(excinfo.value)
 
+    def test_speed_factor(self, cls_name):
+        drv = Driver('3', 3, 4, 4, 5)
+        drv.work_shifts = [WorkShift(dtime, dtime)]
+        drv.skills = ['calm', 'angry']
+        drv.speed_factor = '4'
+        with pytest.raises(TypeError) as excinfo:
+            drv.validate()
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'speed_factor', Number, str)
+        assert err_msg == str(excinfo.value)
+
     def test_is_valid(self):
         drv = Driver('3', 3, 4, 4, 5)
         drv.work_shifts = [WorkShift(dtime, dtime)]
         drv.skills = ['calm', 'angry']
+        drv.speed_factor = 1.5
         assert drv.validate() is None
-        assert jsonify(drv) == '{"endLon": 5, "skills": ["calm", "angry"], ' \
-                               '"endLat": 4, "startLat": 3, "workShifts": ' \
-                               '[{"workTimeFrom": "2014-12-05T08:00", ' \
-                               '"workTimeTo": "2014-12-05T08:00"}], ' \
-                               '"startLon": 4, "id": "3"}'
+        assert jsonify(drv) == \
+            '{"endLon": 5, "skills": ["calm", "angry"], "endLat": 4, ' \
+            '"startLat": 3, "workShifts": [{"workTimeFrom": ' \
+            '"2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], ' \
+            '"speedFactor": 1.5, "startLon": 4, "id": "3"}'
         assert DriverValidator.validate(dictify(drv)) is None
 
 
