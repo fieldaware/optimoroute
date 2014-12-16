@@ -9,6 +9,7 @@ This is a python library for [OptimoRoute][optimoroute.com]'s web service.
 ---
 
 [![Build Status](https://travis-ci.org/fieldaware/optimoroute.svg?branch=master)](https://travis-ci.org/fieldaware/optimoroute)
+[![PyPI version](https://badge.fury.io/py/optimo.svg)](http://badge.fury.io/py/optimo)
 
 # Requirements
 

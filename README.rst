@@ -10,6 +10,8 @@ in Alpha development status. Use at your own risk.
 
 --------------
 
+|Build Status| |PyPI version|
+
 Requirements
 ============
 
@@ -112,3 +114,8 @@ Usage
     optimo_api.stop('1234')
 
 .. _OptimoRoute: http://optimoroute.com
+
+.. |Build Status| image:: https://travis-ci.org/fieldaware/optimoroute.svg?branch=master
+   :target: https://travis-ci.org/fieldaware/optimoroute
+.. |PyPI version| image:: https://badge.fury.io/py/optimo.svg
+   :target: http://badge.fury.io/py/optimo
