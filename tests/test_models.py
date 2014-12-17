@@ -132,6 +132,10 @@ class TestWorkShift(object):
     def test_is_valid(self):
         ws = WorkShift(dtime, dtime)
         ws.allowed_overtime = 2
+        assert ws.validate() is None
+
+        ws = WorkShift(dtime, dtime)
+        ws.allowed_overtime = 2
         ws.break_ = Break(dtime, dtime, 5)
         ws.unavailable_times = [TimeWindow(dtime, dtime)]
         assert ws.validate() is None
