@@ -12,7 +12,6 @@ from optimo import (
     Break,
     SchedulingInfo,
     TimeWindow,
-    UnavailableTime,
 )
 from optimo.util import OptimoEncoder
 
@@ -46,12 +45,7 @@ class TestBreak(object):
         brk = Break(3, 4, 5)
         with pytest.raises(TypeError) as excinfo:
             brk.validate()
-        err_msg = TYPE_ERR_MSG.format(
-            cls_name,
-            'start_break',
-            datetime,
-            int
-        )
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'start_break', datetime, int)
         assert err_msg == str(excinfo.value)
 
     def test_end_break(self, cls_name):
@@ -132,14 +126,14 @@ class TestWorkShift(object):
         with pytest.raises(TypeError) as excinfo:
             ws.validate()
         err_msg = "'{}.unavailable_times' must contain elements of type " \
-                  "UnavailableTime".format(cls_name)
+                  "TimeWindow".format(cls_name)
         assert err_msg == str(excinfo.value)
 
     def test_is_valid(self):
         ws = WorkShift(dtime, dtime)
         ws.allowed_overtime = 2
         ws.break_ = Break(dtime, dtime, 5)
-        ws.unavailable_times = [UnavailableTime(dtime, dtime)]
+        ws.unavailable_times = [TimeWindow(dtime, dtime)]
         assert ws.validate() is None
         assert jsonify(ws) == '{"workTimeFrom": "2014-12-05T08:00", ' \
                               '"break": {"breakStartTo": "2014-12-05T08:00", ' \
@@ -161,12 +155,7 @@ class TestSchedulingInfo(object):
         si = SchedulingInfo(1, 1)
         with pytest.raises(TypeError) as excinfo:
             si.validate()
-        err_msg = TYPE_ERR_MSG.format(
-            cls_name,
-            'scheduled_at',
-            datetime,
-            int
-        )
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_at', datetime, int)
         assert err_msg == str(excinfo.value)
 
     def test_scheduled_driver(self, cls_name):
@@ -344,35 +333,6 @@ class TestOrder(object):
             '"2014-12-05T08:00", "scheduledDriver": "rantanplan", ' \
             '"locked": false}, "id": "3"}'
         assert OrderValidator.validate(dictify(order)) is None
-
-
-class TestUnavailableTime(object):
-    @pytest.fixture
-    def cls_name(self):
-        return UnavailableTime.__name__
-
-    def test_start_time(self, cls_name):
-        ut = UnavailableTime(1, 2)
-        with pytest.raises(TypeError) as excinfo:
-            ut.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'start_time', datetime, int)
-        assert err_msg == str(excinfo.value)
-
-        dtime = datetime(year=2014, month=12, day=5, hour=8, minute=0)
-
-    def test_end_time(self, cls_name):
-        ut = UnavailableTime(dtime, 2)
-        with pytest.raises(TypeError) as excinfo:
-            ut.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'end_time', datetime, int)
-        assert err_msg == str(excinfo.value)
-
-    def test_is_valid(self):
-        ut = UnavailableTime(dtime, dtime)
-        assert ut.validate() is None
-        assert jsonify(ut) == '{"timeFrom": "2014-12-05T08:00", ' \
-                              '"timeTo": "2014-12-05T08:00"}'
-        assert UnavailableTimeValidator.validate(dictify(ut)) is None
 
 
 class TestDriver(object):

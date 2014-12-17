@@ -12,4 +12,4 @@ def test_coreoptimoencoder():
 
     d = {'datetime': dt, 'a_decimal': dec, 'integer': 5}
     assert json.dumps(d, cls=CoreOptimoEncoder) == \
-           '{"a_decimal": 4.5, "integer": 5, "datetime": "2014-12-05T08:00"}'
+        '{"a_decimal": 4.5, "integer": 5, "datetime": "2014-12-05T08:00"}'

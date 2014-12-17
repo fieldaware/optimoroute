@@ -12,9 +12,9 @@ SUCCESSFUL_GET_RESPONSE = {
         'connection': 'keep-alive',
         'etag': '"505dfd429ec44bb17e7f47a3cf6e11305cc15a80"',
         'date': 'Fri, 05 Dec 2014 15:22:16 GMT',
-        'content-type': 'application/json'
+        'content-type': 'application/json',
     },
-    'status_code': 200
+    'status_code': 200,
 }
 
 REQUEST_ID_NOT_FOUND_RESPONSE = {
@@ -27,7 +27,7 @@ REQUEST_ID_NOT_FOUND_RESPONSE = {
         'connection': 'keep-alive',
         'etag': '"de2a7344fe6a9f09559b9b2fa46b767fd30e3634"',
         'date': 'Tue, 09 Dec 2014 13:17:33 GMT',
-        'content-type': 'application/json'
+        'content-type': 'application/json',
     }
 }
 
@@ -41,7 +41,7 @@ PLANNING_IN_PROGRESS_RESPONSE = {
         'connection': 'keep-alive',
         'etag': '"de2a7344fe6a9f09559b9b2fa46b767fd30e3634"',
         'date': 'Tue, 09 Dec 2014 13:17:33 GMT',
-        'content-type': 'application/json'
+        'content-type': 'application/json',
     }
 }
 
@@ -53,7 +53,7 @@ SUCCESSFUL_PLAN_RESPONSE = {
         'content-length': '16',
         'content-type': 'application/json',
         'connection': 'keep-alive',
-        'server': 'TornadoServer/4.0.2'
+        'server': 'TornadoServer/4.0.2',
     }
 }
 
@@ -66,7 +66,7 @@ UNSUCCESSFUL_PLAN_RESPONSE = {
         'content-length': '16',
         'content-type': 'application/json',
         'connection': 'keep-alive',
-        'server': 'TornadoServer/4.0.2'
+        'server': 'TornadoServer/4.0.2',
     }
 }
 
@@ -78,7 +78,7 @@ SUCCESSFUL_STOP_RESPONSE = {
         'content-length': '16',
         'content-type': 'application/json',
         'connection': 'keep-alive',
-        'server': 'TornadoServer/4.0.2'
+        'server': 'TornadoServer/4.0.2',
     }
 }
 

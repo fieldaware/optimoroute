@@ -23,6 +23,12 @@ class BaseModel(object):
         """
 
     def validate_type(self, attr, expected):
+        """Validates that ``attr`` is of the ``expected`` type
+
+        :param attr: name of the model attribute to check
+        :param expected: expected type of ``attr``
+        :return: None if is valid, or it will raise a TypeError
+        """
         type_error_msg = "'{}.{}' must be of type {!r}, not {!r}"
         value = getattr(self, attr)
 
@@ -74,18 +80,19 @@ class TimeWindow(BaseModel):
 
 
 class Order(BaseModel):
-    def __init__(self, id, lat, lng, duration):
+    def __init__(self, id, lat, lng, duration, time_window=None, priority='M',
+                 skills=None, assigned_to=None, scheduling_info=None):
         self.id = id
         self.lat = lat
         self.lng = lng
         self.duration = duration
         # described as 'tw' in the JSON schema
-        self.time_window = None
+        self.time_window = time_window
         # (M)edium is the default for the OptimoRoute service
-        self.priority = 'M'
-        self.skills = []
-        self.assigned_to = None
-        self.scheduling_info = None
+        self.priority = priority
+        self.skills = skills or []
+        self.assigned_to = assigned_to
+        self.scheduling_info = scheduling_info
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -190,16 +197,14 @@ class WorkShift(BaseModel):
 
         if self.break_ is not None:
             self.validate_type('break_', Break)
-            self.break_.validate()
 
         self.validate_type('unavailable_times', ITERABLES)
-        for ut in self.unavailable_times:
-            if not isinstance(ut, UnavailableTime):
+        for time_window in self.unavailable_times:
+            if not isinstance(time_window, TimeWindow):
                 raise TypeError(
                     "'{}.unavailable_times' must contain elements of type "
-                    "{}".format(cls_name, 'UnavailableTime')
+                    "{}".format(cls_name, 'TimeWindow')
                 )
-            ut.validate()
 
     def as_optimo_schema(self):
         self.validate()
@@ -218,24 +223,6 @@ class WorkShift(BaseModel):
             d['unavailableTimes'] = self.unavailable_times
 
         return d
-
-
-class UnavailableTime(BaseModel):
-
-    def __init__(self, start_time, end_time):
-        self.start_time = start_time
-        self.end_time = end_time
-
-    def validate(self):
-        self.validate_type('start_time', datetime.datetime)
-        self.validate_type('end_time', datetime.datetime)
-
-    def as_optimo_schema(self):
-        self.validate()
-        return {
-            'timeFrom': self.start_time,
-            'timeTo': self.end_time,
-        }
 
 
 class Driver(BaseModel):
@@ -276,7 +263,6 @@ class Driver(BaseModel):
                     "'{}.work_shifts' must contain elements of type {}"
                     .format(cls_name, 'WorkShift')
                 )
-            ws.validate()
 
         self.validate_type('skills', ITERABLES)
         for skill in self.skills:
@@ -310,14 +296,14 @@ class RoutePlan(BaseModel):
     NO_LOAD_CAPACITIES_MAX = 4
 
     def __init__(self, request_id, callback_url, status_callback_url,
-                 orders=None, drivers=None):
+                 orders=None, drivers=None, no_load_capacities=None):
         # TODO: support for serviceRegions and optimizationParamaters
         self.request_id = request_id
         self.callback_url = callback_url
         self.status_callback_url = status_callback_url
         self.orders = orders or []
         self.drivers = drivers or []
-        self.no_load_capacities = None
+        self.no_load_capacities = no_load_capacities
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -337,7 +323,6 @@ class RoutePlan(BaseModel):
                 if not isinstance(order, Order):
                     raise TypeError("'{}.orders' must contain elements of "
                                     "type {}".format(cls_name, 'Order'))
-                order.validate()
 
         self.validate_type('drivers', ITERABLES)
         if not self.drivers:
@@ -347,7 +332,6 @@ class RoutePlan(BaseModel):
                 if not isinstance(drv, Driver):
                     raise TypeError("'{}.drivers' must contain elements of type"
                                     " {}".format(cls_name, 'Driver'))
-                drv.validate()
 
         if self.no_load_capacities is not None:
             self.validate_type('no_load_capacities', (int, long))

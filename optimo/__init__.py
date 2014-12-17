@@ -7,7 +7,6 @@ from .models import (
     Order,
     RoutePlan,
     SchedulingInfo,
-    UnavailableTime,
 )
 
 from .api import OptimoAPI, OptimoError
