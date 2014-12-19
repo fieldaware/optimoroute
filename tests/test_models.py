@@ -41,18 +41,18 @@ class TestBreak(object):
     def cls_name(self):
         return Break.__name__
 
-    def test_start_break(self, cls_name):
+    def test_earliest_start(self, cls_name):
         brk = Break(3, 4, 5)
         with pytest.raises(TypeError) as excinfo:
             brk.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'start_break', datetime, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'earliest_start', datetime, int)
         assert err_msg == str(excinfo.value)
 
     def test_end_break(self, cls_name):
         brk = Break(dtime, 4, 5)
         with pytest.raises(TypeError) as excinfo:
             brk.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'end_break', datetime, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'latest_start', datetime, int)
         assert err_msg == str(excinfo.value)
 
     def test_duration(self, cls_name):
