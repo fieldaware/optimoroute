@@ -9,4 +9,5 @@ from .models import (
     SchedulingInfo,
 )
 
-from .api import OptimoAPI, OptimoError
+from .api import OptimoAPI
+from .errors import OptimoError

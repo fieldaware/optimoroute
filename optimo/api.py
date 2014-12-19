@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
 
-from optimo.base import CoreOptimoAPI
+from .errors import OptimoError
+from .base import CoreOptimoAPI
 from .util import OptimoEncoder
 from .models import RoutePlan
-
-
-class OptimoError(Exception):
-    """Raised when an operation was not successful"""
 
 
 def parse_response(raw_response):

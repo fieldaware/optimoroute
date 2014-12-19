@@ -13,6 +13,7 @@ from optimo import (
     SchedulingInfo,
     TimeWindow,
 )
+from optimo.errors import OptimoValidationError
 from optimo.util import OptimoEncoder
 
 from tests.schema.v1 import (
@@ -20,7 +21,6 @@ from tests.schema.v1 import (
     DriverValidator,
     OrderValidator,
     RoutePlanValidator,
-    UnavailableTimeValidator,
     WorkShiftValidator,
     SchedulingInfoValidator,
     TimeWindowValidator,
@@ -139,13 +139,13 @@ class TestWorkShift(object):
         ws.break_ = Break(dtime, dtime, 5)
         ws.unavailable_times = [TimeWindow(dtime, dtime)]
         assert ws.validate() is None
-        assert jsonify(ws) == '{"workTimeFrom": "2014-12-05T08:00", ' \
-                              '"break": {"breakStartTo": "2014-12-05T08:00", ' \
-                              '"breakStartFrom": "2014-12-05T08:00", ' \
-                              '"breakDuration": 5}, "unavailableTimes": ' \
-                              '[{"timeFrom": "2014-12-05T08:00", "timeTo": ' \
-                              '"2014-12-05T08:00"}], "workTimeTo": ' \
-                              '"2014-12-05T08:00", "allowedOvertime": 2}'
+        assert jsonify(ws) == (
+            '{"workTimeFrom": "2014-12-05T08:00", "break": {"breakStartTo": '
+            '"2014-12-05T08:00", "breakStartFrom": "2014-12-05T08:00", '
+            '"breakDuration": 5}, "unavailableTimes": [{"timeFrom": '
+            '"2014-12-05T08:00", "timeTo": "2014-12-05T08:00"}], "workTimeTo": '
+            '"2014-12-05T08:00", "allowedOvertime": 2}'
+        )
 
         assert WorkShiftValidator.validate(dictify(ws)) is None
 
@@ -166,8 +166,18 @@ class TestSchedulingInfo(object):
         si = SchedulingInfo(dtime, 1)
         with pytest.raises(TypeError) as excinfo:
             si.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', str, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', (str, Driver), int)
         assert err_msg == str(excinfo.value)
+
+        # test it accepts a string as a driver
+        si = SchedulingInfo(dtime, 'bobos')
+        assert si.validate() is None
+
+        # test it accepts a driver object too
+        drv = Driver('3', 3, 4, 4, 5)
+        si = SchedulingInfo(dtime, drv)
+        assert si.validate() is None
+
 
     def test_locked(self, cls_name):
         si = SchedulingInfo(dtime, 'bobos', locked=4)
@@ -179,9 +189,21 @@ class TestSchedulingInfo(object):
     def test_is_valid(self):
         si = SchedulingInfo(dtime, 'bobos')
         assert si.validate() is None
-        assert jsonify(si) == '{"scheduledAt": "2014-12-05T08:00", ' \
-                              '"scheduledDriver": "bobos", "locked": false}'
+        assert jsonify(si) == (
+            '{"scheduledAt": "2014-12-05T08:00", "locked": false, '
+            '"scheduledDriver": "bobos"}'
+        )
+        assert SchedulingInfoValidator.validate(dictify(si)) is None
 
+        # test that if we give a Driver object instead of its string id it has
+        # the same result
+        drv = Driver('bobos', 3, 4, 4, 5)
+        si = SchedulingInfo(dtime, drv)
+        assert si.validate() is None
+        assert jsonify(si) == (
+            '{"scheduledAt": "2014-12-05T08:00", "locked": false, '
+            '"scheduledDriver": "bobos"}'
+        )
         assert SchedulingInfoValidator.validate(dictify(si)) is None
 
 
@@ -329,13 +351,13 @@ class TestOrder(object):
         order.assigned_to = 'Tom & Jerry'
         order.scheduling_info = SchedulingInfo(dtime, 'rantanplan')
         assert order.validate() is None
-        assert jsonify(order) == \
-            '{"assignedTo": "Tom & Jerry", "skills": ["handy", "quiet"], ' \
-            '"tw": {"timeFrom": "2014-12-05T08:00", "timeTo": ' \
-            '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", ' \
-            '"duration": 7, "lat": 5.2, "schedulingInfo": {"scheduledAt": ' \
-            '"2014-12-05T08:00", "scheduledDriver": "rantanplan", ' \
-            '"locked": false}, "id": "3"}'
+        assert jsonify(order) == (
+            '{"assignedTo": "Tom & Jerry", "skills": ["handy", "quiet"], "tw": '
+            '{"timeFrom": "2014-12-05T08:00", "timeTo": "2014-12-05T08:00"}, '
+            '"lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2, '
+            '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", "locked": '
+            'false, "scheduledDriver": "rantanplan"}, "id": "3"}'
+        )
         assert OrderValidator.validate(dictify(order)) is None
 
 
@@ -442,11 +464,12 @@ class TestDriver(object):
         drv.skills = ['calm', 'angry']
         drv.speed_factor = 1.5
         assert drv.validate() is None
-        assert jsonify(drv) == \
-            '{"endLon": 5, "skills": ["calm", "angry"], "endLat": 4, ' \
-            '"startLat": 3, "workShifts": [{"workTimeFrom": ' \
-            '"2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], ' \
-            '"speedFactor": 1.5, "startLon": 4, "id": "3"}'
+        assert jsonify(drv) == (
+            '{"endLon": 5, "skills": ["calm", "angry"], "endLat": 4, '
+            '"startLat": 3, "workShifts": [{"workTimeFrom": "2014-12-05T08:00",'
+            ' "workTimeTo": "2014-12-05T08:00"}], "speedFactor": 1.5, '
+            '"startLon": 4, "id": "3"}'
+        )
         assert DriverValidator.validate(dictify(drv)) is None
 
 
@@ -475,7 +498,11 @@ class TestRoutePlan(object):
         drv2 = Driver('4', 3, 4, 4, 5)
         drv2.work_shifts = [WorkShift(dtime, dtime)]
         drv2.skills = ['pirate', 'ninja']
-        return drv1, drv2
+
+        drv3 = Driver('rantanplan', 3, 4, 4, 5)
+        drv3.work_shifts = [WorkShift(dtime, dtime)]
+        drv3.skills = ['woofing', 'barking']
+        return drv1, drv2, drv3
 
     @pytest.fixture
     def cls_name(self):
@@ -556,6 +583,20 @@ class TestRoutePlan(object):
             format(cls_name)
         assert err_msg == str(excinfo.value)
 
+    def test_orders_scheduled_driver(self, orders, drivers):
+        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        drivers = list(drivers)
+        # pop rantanplan from the list
+        drivers.pop()
+        routeplan.orders = list(orders)
+        routeplan.drivers = drivers
+
+        with pytest.raises(OptimoValidationError) as excinfo:
+            routeplan.validate()
+        err_msg = "SchedulingInfo defines driver with id: 'rantanplan' that " \
+                  "is not present in 'drivers' list"
+        assert err_msg == str(excinfo.value)
+
     def test_no_load_capacities(self, cls_name, orders, drivers):
         routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
         routeplan.orders = list(orders)
@@ -581,24 +622,28 @@ class TestRoutePlan(object):
         routeplan.drivers = list(drivers)
         routeplan.no_load_capacities = 3
         assert routeplan.validate() is None
-        assert jsonify(routeplan) == \
-            '{"noLoadCapacities": 3, "statusCallback": "somestatusurl", ' \
-            '"drivers": [{"endLon": 5, "skills": ["calm", "angry"], ' \
-            '"endLat": 4, "startLat": 3, "workShifts": [{"workTimeFrom": ' \
-            '"2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], ' \
-            '"startLon": 4, "id": "3"}, {"endLon": 5, "skills": ' \
-            '["pirate", "ninja"], "endLat": 4, "startLat": 3, "workShifts":' \
-            ' [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": ' \
-            '"2014-12-05T08:00"}], "startLon": 4, "id": "4"}], "callback": ' \
-            '"someurl", "requestId": "1234", "orders": [{"assignedTo": ' \
-            '"Tom & Jerry", "skills": ["handy", "quiet"], "tw": {"timeFrom":' \
-            ' "2014-12-05T08:00", "timeTo": "2014-12-05T08:00"}, "lon": 6.1,' \
-            ' "priority": "M", "duration": 7, "lat": 5.2, "schedulingInfo":' \
-            ' {"scheduledAt": "2014-12-05T08:00", "scheduledDriver": ' \
-            '"rantanplan", "locked": false}, "id": "3"}, {"assignedTo": ' \
-            '"Sam & Max", "skills": ["barista", "terrorista"], "tw": ' \
-            '{"timeFrom": "2014-12-05T08:00", "timeTo": "2014-12-05T08:00"},' \
-            ' "lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2, ' \
-            '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", ' \
-            '"scheduledDriver": "rantanplan", "locked": false}, "id": "4"}]}'
+        assert jsonify(routeplan) == (
+            '{"noLoadCapacities": 3, "statusCallback": "somestatusurl", '
+            '"drivers": [{"endLon": 5, "skills": ["calm", "angry"], "endLat":'
+            ' 4, "startLat": 3, "workShifts": [{"workTimeFrom": '
+            '"2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], '
+            '"startLon": 4, "id": "3"}, {"endLon": 5, "skills": ["pirate", '
+            '"ninja"], "endLat": 4, "startLat": 3, "workShifts": '
+            '[{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
+            '"2014-12-05T08:00"}], "startLon": 4, "id": "4"}, {"endLon": 5, '
+            '"skills": ["woofing", "barking"], "endLat": 4, "startLat": 3, '
+            '"workShifts": [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo":'
+            ' "2014-12-05T08:00"}], "startLon": 4, "id": "rantanplan"}], '
+            '"callback": "someurl", "requestId": "1234", "orders": '
+            '[{"assignedTo": "Tom & Jerry", "skills": ["handy", "quiet"], '
+            '"tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
+            '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, '
+            '"lat": 5.2, "schedulingInfo": {"scheduledAt": "2014-12-05T08:00", '
+            '"locked": false, "scheduledDriver": "rantanplan"}, "id": "3"}, '
+            '{"assignedTo": "Sam & Max", "skills": ["barista", "terrorista"], '
+            '"tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
+            '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, '
+            '"lat": 5.2, "schedulingInfo": {"scheduledAt": "2014-12-05T08:00", '
+            '"locked": false, "scheduledDriver": "rantanplan"}, "id": "4"}]}'
+        )
         assert RoutePlanValidator.validate(dictify(routeplan)) is None

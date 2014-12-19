@@ -3,6 +3,8 @@ import abc
 import datetime
 from numbers import Number
 
+from .errors import OptimoValidationError
+
 
 class BaseModel(object):
     """Abstract base class that all OptimoRoute entities must subclass"""
@@ -50,16 +52,20 @@ class SchedulingInfo(BaseModel):
 
     def validate(self):
         self.validate_type('scheduled_at', datetime.datetime)
-        self.validate_type('scheduled_driver', str)
+        self.validate_type('scheduled_driver', (str, Driver))
         self.validate_type('locked', bool)
 
     def as_optimo_schema(self):
         self.validate()
-        return {
+        d = {
             'scheduledAt': self.scheduled_at,
-            'scheduledDriver': self.scheduled_driver,
             'locked': self.locked,
         }
+        if isinstance(self.scheduled_driver, Driver):
+            d['scheduledDriver'] = self.scheduled_driver.id
+        else:
+            d['scheduledDriver'] = self.scheduled_driver
+        return d
 
 
 class TimeWindow(BaseModel):
@@ -341,6 +347,19 @@ class RoutePlan(BaseModel):
                     "'{}.no_load_capacities' must be between 0-4".
                     format(cls_name)
                 )
+
+        # ascertain that all driver id references of scheduling_info, inside
+        # each order, correspond to actual driver objects inside 'drivers'.
+        driver_ids = [drv.id for drv in self.drivers]
+        for order in self.orders:
+            if order.scheduling_info:
+                si_schema = order.scheduling_info.as_optimo_schema()
+                si_driver_id = si_schema['scheduledDriver']
+                if si_driver_id not in driver_ids:
+                    raise OptimoValidationError(
+                        "SchedulingInfo defines driver with id: '{}' that is "
+                        "not present in 'drivers' list".format(si_driver_id)
+                    )
 
     def as_optimo_schema(self):
         self.validate()
