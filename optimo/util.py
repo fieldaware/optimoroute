@@ -35,12 +35,13 @@ class OptimoEncoder(CoreOptimoEncoder):
 
 
 def process_optimo_params(optimo_url, version, access_key):
-    """
+    """Validates and normalizes the parameters passed to
+    :class:`optimo.api.OptimoAPI` constructor.
 
-    :param optimo_url:
-    :param version:
-    :param access_key:
-    :return:
+    :param optimo_url: string url of the optimoroute's service
+    :param version: `int` or `str` denoting the API version
+    :param access_key: string access key provided by optimoroute
+    :return: None if successful, or raises OptimoError otherwise
     """
     if not optimo_url or not isinstance(optimo_url, basestring):
         raise OptimoError("'optimo_url' must be a url string")
