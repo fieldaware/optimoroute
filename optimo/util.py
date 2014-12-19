@@ -4,7 +4,13 @@ import datetime
 
 from decimal import Decimal
 
-from models import BaseModel
+from requests.packages.urllib3.util import parse_url
+
+from .models import BaseModel
+from .errors import OptimoError
+
+
+DEFAULT_API_VERSION = 'v1'
 
 
 class CoreOptimoEncoder(json.JSONEncoder):
@@ -26,3 +32,35 @@ class OptimoEncoder(CoreOptimoEncoder):
         if isinstance(o, BaseModel):
             return o.as_optimo_schema()
         return super(OptimoEncoder, self).default(o)
+
+
+def process_optimo_params(optimo_url, version, access_key):
+    """
+
+    :param optimo_url:
+    :param version:
+    :param access_key:
+    :return:
+    """
+    if not optimo_url or not isinstance(optimo_url, basestring):
+        raise OptimoError("'optimo_url' must be a url string")
+
+    url = parse_url(optimo_url)
+    if not url.scheme:
+        optimo_url = 'https://' + url.hostname
+
+    if isinstance(version, (int, long)):
+        if version < 1:
+            raise OptimoError("{} is an invalid API version".format(version))
+        version = 'v' + str(version)
+    elif isinstance(version, basestring):
+        if not version:
+            raise OptimoError("'version' cannot be an empty string")
+    else:
+        raise OptimoError("'version' must be a string denoting the API version "
+                          "you want to use")
+
+    if not access_key or not isinstance(access_key, basestring):
+        raise OptimoError("'access_key' must be the string access key provided "
+                          "to you by optimoroute")
+    return optimo_url, version, access_key

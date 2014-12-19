@@ -47,14 +47,65 @@ def route_plan():
     return routeplan
 
 
-def test_optimoapi_instantiation():
-    optimo_apiv1 = OptimoAPI('https://foo.bar.com', 'foobarkey')
-    assert optimo_apiv1.optimo_url == 'https://foo.bar.com'
-    assert optimo_apiv1.access_key == 'foobarkey'
-    assert optimo_apiv1.version == 'v1'
+class TestOptimoAPIConfiguration(object):
+    def test_optimoapi_instatiation(self):
+        optimo_apiv1 = OptimoAPI('https://foo.bar.com', 'foobarkey')
+        assert optimo_apiv1.optimo_url == 'https://foo.bar.com'
+        assert optimo_apiv1.access_key == 'foobarkey'
+        assert optimo_apiv1.version == 'v1'
 
-    optimo_apiv2 = OptimoAPI('https://foo.bar.com', 'foobarkey', version='v2')
-    assert optimo_apiv2.version == 'v2'
+        optimo_apiv2 = OptimoAPI('https://foo.bar.com', 'foobarkey', version='v2')
+        assert optimo_apiv2.version == 'v2'
+
+    def test_optimoapi_url(self):
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('', 'foobarkey')
+        assert str(excinfo.value) == "'optimo_url' must be a url string"
+
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI(None, 'foobarkey')
+        assert str(excinfo.value) == "'optimo_url' must be a url string"
+
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI(3, 'foobarkey')
+        assert str(excinfo.value) == "'optimo_url' must be a url string"
+
+        # omit the 'https'
+        optimo_apiv1 = OptimoAPI('foo.bar.com', 'foobarkey')
+        assert optimo_apiv1.optimo_url == 'https://foo.bar.com'
+
+    def test_optimoapi_version(self):
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('foo.bar.com', 'foobarkey', version=0)
+        assert str(excinfo.value) == '0 is an invalid API version'
+
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('foo.bar.com', 'foobarkey', version='')
+        assert str(excinfo.value) == "'version' cannot be an empty string"
+
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('foo.bar.com', 'foobarkey', version=2.0)
+        assert str(excinfo.value) == ("'version' must be a string denoting the "
+                                      "API version you want to use")
+
+        optimo_api = OptimoAPI('foo.bar.com', 'foobarkey', version=1)
+        assert optimo_api.version == 'v1'
+
+    def test_optimoapi_access_key(self):
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('foo.bar.com', '')
+        assert str(excinfo.value) == ("'access_key' must be the string access"
+                                      " key provided to you by optimoroute")
+
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('foo.bar.com', None)
+        assert str(excinfo.value) == ("'access_key' must be the string access"
+                                      " key provided to you by optimoroute")
+
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('foo.bar.com', 432)
+        assert str(excinfo.value) == ("'access_key' must be the string access"
+                                      " key provided to you by optimoroute")
 
 
 def test_successful_get(optimo_api):
