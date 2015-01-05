@@ -41,7 +41,8 @@ def process_optimo_params(optimo_url, version, access_key):
     :param optimo_url: string url of the optimoroute's service
     :param version: `int` or `str` denoting the API version
     :param access_key: string access key provided by optimoroute
-    :return: None if successful, or raises OptimoError otherwise
+    :return: `tuple` of the, possibly adjusted, passed parameters.
+    :raises OptimoError: On providing incomplete or invalid config data
     """
     if not optimo_url or not isinstance(optimo_url, basestring):
         raise OptimoError("'optimo_url' must be a url string")
@@ -50,16 +51,10 @@ def process_optimo_params(optimo_url, version, access_key):
     if not url.scheme:
         optimo_url = 'https://' + url.hostname
 
-    if isinstance(version, (int, long)):
-        if version < 1:
-            raise OptimoError("{} is an invalid API version".format(version))
-        version = 'v' + str(version)
-    elif isinstance(version, basestring):
-        if not version:
-            raise OptimoError("'version' cannot be an empty string")
-    else:
+    if not version or not isinstance(version, basestring) or not \
+            version.startswith('v'):
         raise OptimoError("'version' must be a string denoting the API version "
-                          "you want to use")
+                          "you want to use('v1', 'v2', etc")
 
     if not access_key or not isinstance(access_key, basestring):
         raise OptimoError("'access_key' must be the string access key provided "

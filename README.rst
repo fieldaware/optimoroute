@@ -41,19 +41,19 @@ Usage
     optimo_api = OptimoAPI('https://api.optimoroute.com', 'some_access_key')
 
     # Create a workshift for the driver.
-    ws = WorkShift(
+    work_shift = WorkShift(
         start_work=datetime(year=2014, month=12, day=5, hour=8, minute=0),
         end_work=datetime(year=2014, month=12, day=5, hour=14, minute=0),
     )
 
     # Create the driver and also pass the workshift we created above.
-    drv = Driver(
+    driver = Driver(
         id='123',
         start_lat=Decimal('53.350046'),
         start_lng=Decimal('-6.274655'),
         end_lat=Decimal('53.341191'),
         end_lng=Decimal('-6.260402'),
-        work_shifts=[ws],
+        work_shifts=[work_shift],
     )
 
     order1 = Order(
@@ -77,7 +77,7 @@ Usage
         request_id='1234',
         callback_url='https://callback.com/1234',
         status_callback_url='https://status.callback.com/1234',
-        drivers=[drv],
+        drivers=[driver],
         orders=[order1, order2],
     )
 

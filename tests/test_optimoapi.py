@@ -75,20 +75,25 @@ class TestOptimoAPIConfiguration(object):
         assert optimo_apiv1.optimo_url == 'https://foo.bar.com'
 
     def test_optimoapi_version(self):
+        VERSION_ERROR_MSG = "'version' must be a string denoting the API " \
+                            "version you want to use('v1', 'v2', etc"
         with pytest.raises(OptimoError) as excinfo:
             OptimoAPI('foo.bar.com', 'foobarkey', version=0)
-        assert str(excinfo.value) == '0 is an invalid API version'
+        assert str(excinfo.value) == VERSION_ERROR_MSG
 
         with pytest.raises(OptimoError) as excinfo:
             OptimoAPI('foo.bar.com', 'foobarkey', version='')
-        assert str(excinfo.value) == "'version' cannot be an empty string"
+        assert str(excinfo.value) == VERSION_ERROR_MSG
 
         with pytest.raises(OptimoError) as excinfo:
             OptimoAPI('foo.bar.com', 'foobarkey', version=2.0)
-        assert str(excinfo.value) == ("'version' must be a string denoting the "
-                                      "API version you want to use")
+        assert str(excinfo.value) == VERSION_ERROR_MSG
 
-        optimo_api = OptimoAPI('foo.bar.com', 'foobarkey', version=1)
+        with pytest.raises(OptimoError) as excinfo:
+            OptimoAPI('foo.bar.com', 'foobarkey', version='s1')
+        assert str(excinfo.value) == VERSION_ERROR_MSG
+
+        optimo_api = OptimoAPI('foo.bar.com', 'foobarkey', version='v1')
         assert optimo_api.version == 'v1'
 
     def test_optimoapi_access_key(self):
