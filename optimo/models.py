@@ -378,14 +378,18 @@ class RoutePlan(BaseModel):
         self.no_load_capacities = no_load_capacities
 
     def validate(self):
+        from .util import validate_scheme
+
         cls_name = self.__class__.__name__
         self.validate_type('request_id', basestring)
         if not self.request_id:
             raise ValueError("'{}.request_id' cannot be an empty string".format(cls_name))
 
         self.validate_type('callback_url', basestring)
+        validate_scheme(self.callback_url)
 
         self.validate_type('status_callback_url', basestring)
+        validate_scheme(self.status_callback_url)
 
         self.validate_type('orders', ITERABLES)
         if not self.orders:

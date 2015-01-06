@@ -3,7 +3,7 @@ import json
 
 from .errors import OptimoError
 from .base import CoreOptimoAPI
-from .util import OptimoEncoder, DEFAULT_API_VERSION, process_optimo_params
+from .util import OptimoEncoder, DEFAULT_API_VERSION, validate_config_params
 from .models import RoutePlan
 
 
@@ -32,7 +32,7 @@ class OptimoAPI(object):
       >>> optimo_api.stop('1234')  # Stop a running plan optimization
     """
     def __init__(self, optimo_url, access_key, version=DEFAULT_API_VERSION):
-        optimo_url, version, access_key = process_optimo_params(
+        optimo_url, version, access_key = validate_config_params(
             optimo_url,
             version,
             access_key

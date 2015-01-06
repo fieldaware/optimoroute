@@ -12,7 +12,7 @@ from optimo import (
     RoutePlan,
     OptimoError,
 )
-from optimo.util import OptimoEncoder
+from optimo.util import OptimoEncoder, validate_scheme
 
 from tests.schema.v1 import RoutePlanValidator
 
@@ -47,6 +47,14 @@ def route_plan():
     return routeplan
 
 
+def test_validate_scheme():
+    with pytest.raises(OptimoError) as excinfo:
+        validate_scheme('some.url.com')
+
+    assert str(excinfo.value) == ("The url: 'some.url.com' does not define a "
+                                  "protocol scheme")
+
+
 class TestOptimoAPIConfiguration(object):
     def test_optimoapi_instatiation(self):
         optimo_apiv1 = OptimoAPI('https://foo.bar.com', 'foobarkey')
@@ -71,44 +79,44 @@ class TestOptimoAPIConfiguration(object):
         assert str(excinfo.value) == "'optimo_url' must be a url string"
 
         # omit the 'https'
-        optimo_apiv1 = OptimoAPI('foo.bar.com', 'foobarkey')
+        optimo_apiv1 = OptimoAPI('https://foo.bar.com', 'foobarkey')
         assert optimo_apiv1.optimo_url == 'https://foo.bar.com'
 
     def test_optimoapi_version(self):
         VERSION_ERROR_MSG = "'version' must be a string denoting the API " \
                             "version you want to use('v1', 'v2', etc"
         with pytest.raises(OptimoError) as excinfo:
-            OptimoAPI('foo.bar.com', 'foobarkey', version=0)
+            OptimoAPI('http://foo.bar.com', 'foobarkey', version=0)
         assert str(excinfo.value) == VERSION_ERROR_MSG
 
         with pytest.raises(OptimoError) as excinfo:
-            OptimoAPI('foo.bar.com', 'foobarkey', version='')
+            OptimoAPI('http://foo.bar.com', 'foobarkey', version='')
         assert str(excinfo.value) == VERSION_ERROR_MSG
 
         with pytest.raises(OptimoError) as excinfo:
-            OptimoAPI('foo.bar.com', 'foobarkey', version=2.0)
+            OptimoAPI('http://foo.bar.com', 'foobarkey', version=2.0)
         assert str(excinfo.value) == VERSION_ERROR_MSG
 
         with pytest.raises(OptimoError) as excinfo:
-            OptimoAPI('foo.bar.com', 'foobarkey', version='s1')
+            OptimoAPI('http://foo.bar.com', 'foobarkey', version='s1')
         assert str(excinfo.value) == VERSION_ERROR_MSG
 
-        optimo_api = OptimoAPI('foo.bar.com', 'foobarkey', version='v1')
+        optimo_api = OptimoAPI('http://foo.bar.com', 'foobarkey', version='v1')
         assert optimo_api.version == 'v1'
 
     def test_optimoapi_access_key(self):
         with pytest.raises(OptimoError) as excinfo:
-            OptimoAPI('foo.bar.com', '')
+            OptimoAPI('http://foo.bar.com', '')
         assert str(excinfo.value) == ("'access_key' must be the string access"
                                       " key provided to you by optimoroute")
 
         with pytest.raises(OptimoError) as excinfo:
-            OptimoAPI('foo.bar.com', None)
+            OptimoAPI('http://foo.bar.com', None)
         assert str(excinfo.value) == ("'access_key' must be the string access"
                                       " key provided to you by optimoroute")
 
         with pytest.raises(OptimoError) as excinfo:
-            OptimoAPI('foo.bar.com', 432)
+            OptimoAPI('http://foo.bar.com', 432)
         assert str(excinfo.value) == ("'access_key' must be the string access"
                                       " key provided to you by optimoroute")
 

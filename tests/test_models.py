@@ -529,28 +529,28 @@ class TestRoutePlan(object):
         assert err_msg == str(excinfo.value)
 
     def test_status_callback_url(self, cls_name):
-        routeplan = RoutePlan('1234', 'someurl', 4)
+        routeplan = RoutePlan('1234', 'http://someurl', 4)
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
         err_msg = TYPE_ERR_MSG.format(cls_name, 'status_callback_url', basestring, int)
         assert err_msg == str(excinfo.value)
 
     def test_orders(self, cls_name):
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = 4
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
         err_msg = TYPE_ERR_MSG.format(cls_name, 'orders', (list, tuple), int)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = []
         with pytest.raises(ValueError) as excinfo:
             routeplan.validate()
         err_msg = "'{}.orders' must have at least 1 element".format(cls_name)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = [3]
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
@@ -558,7 +558,7 @@ class TestRoutePlan(object):
         assert err_msg == str(excinfo.value)
 
     def test_drivers(self, cls_name, orders):
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = 3
         with pytest.raises(TypeError) as excinfo:
@@ -566,7 +566,7 @@ class TestRoutePlan(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'drivers', (list, tuple), int)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = []
         with pytest.raises(ValueError) as excinfo:
@@ -574,7 +574,7 @@ class TestRoutePlan(object):
         err_msg = "'{}.drivers' must have at least 1 element".format(cls_name)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = [3]
         with pytest.raises(TypeError) as excinfo:
@@ -584,7 +584,7 @@ class TestRoutePlan(object):
         assert err_msg == str(excinfo.value)
 
     def test_orders_scheduled_driver(self, orders, drivers):
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         drivers = list(drivers)
         # pop rantanplan from the list
         drivers.pop()
@@ -598,7 +598,7 @@ class TestRoutePlan(object):
         assert err_msg == str(excinfo.value)
 
     def test_no_load_capacities(self, cls_name, orders, drivers):
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
         routeplan.no_load_capacities = 'HA'
@@ -607,7 +607,7 @@ class TestRoutePlan(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'no_load_capacities', (int, long), str)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
         routeplan.no_load_capacities = 5
@@ -617,29 +617,29 @@ class TestRoutePlan(object):
         assert err_msg == str(excinfo.value)
 
     def test_is_valid(self, orders, drivers):
-        routeplan = RoutePlan('1234', 'someurl', 'somestatusurl')
+        routeplan = RoutePlan('1234', 'http://someurl', 'http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
         routeplan.no_load_capacities = 3
         assert routeplan.validate() is None
         assert jsonify(routeplan) == (
-            '{"noLoadCapacities": 3, "statusCallback": "somestatusurl", '
-            '"drivers": [{"endLon": 5, "skills": ["calm", "angry"], "endLat":'
-            ' 4, "startLat": 3, "workShifts": [{"workTimeFrom": '
+            '{"noLoadCapacities": 3, "statusCallback": "http://somestatusurl",'
+            ' "drivers": [{"endLon": 5, "skills": ["calm", "angry"], '
+            '"endLat": 4, "startLat": 3, "workShifts": [{"workTimeFrom": '
             '"2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], '
-            '"startLon": 4, "id": "3"}, {"endLon": 5, "skills": ["pirate", '
-            '"ninja"], "endLat": 4, "startLat": 3, "workShifts": '
+            '"startLon": 4, "id": "3"}, {"endLon": 5, "skills": '
+            '["pirate", "ninja"], "endLat": 4, "startLat": 3, "workShifts": '
             '[{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
             '"2014-12-05T08:00"}], "startLon": 4, "id": "4"}, {"endLon": 5, '
             '"skills": ["woofing", "barking"], "endLat": 4, "startLat": 3, '
-            '"workShifts": [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo":'
-            ' "2014-12-05T08:00"}], "startLon": 4, "id": "rantanplan"}], '
-            '"callback": "someurl", "requestId": "1234", "orders": '
-            '[{"assignedTo": "Tom & Jerry", "skills": ["handy", "quiet"], '
-            '"tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
-            '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, '
-            '"lat": 5.2, "schedulingInfo": {"scheduledAt": "2014-12-05T08:00", '
-            '"locked": false, "scheduledDriver": "rantanplan"}, "id": "3"}, '
+            '"workShifts": [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
+            '"2014-12-05T08:00"}], "startLon": 4, "id": "rantanplan"}], '
+            '"callback": "http://someurl", "requestId": "1234", "orders": '
+            '[{"assignedTo": "Tom & Jerry", "skills": ["handy", "quiet"], "tw":'
+            ' {"timeFrom": "2014-12-05T08:00", "timeTo": "2014-12-05T08:00"}, '
+            '"lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2, '
+            '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", "locked": '
+            'false, "scheduledDriver": "rantanplan"}, "id": "3"}, '
             '{"assignedTo": "Sam & Max", "skills": ["barista", "terrorista"], '
             '"tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
             '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, '
