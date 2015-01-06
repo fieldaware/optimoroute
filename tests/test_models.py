@@ -475,6 +475,12 @@ class TestDriver(object):
 
 class TestRoutePlan(object):
     @pytest.fixture
+    def routeplan(self):
+        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
+                              status_callback_url='http://somestatusurl')
+        return routeplan
+
+    @pytest.fixture
     def orders(self):
         order1 = Order('3', 5.2, 6.1, 7)
         order1.time_window = TimeWindow(start_time=dtime, end_time=dtime)
@@ -536,9 +542,7 @@ class TestRoutePlan(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'status_callback_url', basestring, int)
         assert err_msg == str(excinfo.value)
 
-    def test_orders(self, cls_name):
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
+    def test_orders(self, cls_name, routeplan):
         routeplan.orders = 4
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
@@ -561,9 +565,7 @@ class TestRoutePlan(object):
         err_msg = "'{}.orders' must contain elements of type Order".format(cls_name)
         assert err_msg == str(excinfo.value)
 
-    def test_drivers(self, cls_name, orders):
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
+    def test_drivers(self, cls_name, orders, routeplan):
         routeplan.orders = list(orders)
         routeplan.drivers = 3
         with pytest.raises(TypeError) as excinfo:
@@ -571,8 +573,6 @@ class TestRoutePlan(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'drivers', (list, tuple), int)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = []
         with pytest.raises(ValueError) as excinfo:
@@ -580,8 +580,6 @@ class TestRoutePlan(object):
         err_msg = "'{}.drivers' must have at least 1 element".format(cls_name)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = [3]
         with pytest.raises(TypeError) as excinfo:
@@ -590,9 +588,7 @@ class TestRoutePlan(object):
             format(cls_name)
         assert err_msg == str(excinfo.value)
 
-    def test_orders_scheduled_driver(self, orders, drivers):
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
+    def test_orders_scheduled_driver(self, orders, drivers, routeplan):
         drivers = list(drivers)
         # pop rantanplan from the list
         drivers.pop()
@@ -605,9 +601,7 @@ class TestRoutePlan(object):
                   "is not present in 'drivers' list"
         assert err_msg == str(excinfo.value)
 
-    def test_no_load_capacities(self, cls_name, orders, drivers):
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
+    def test_no_load_capacities(self, cls_name, orders, drivers, routeplan):
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
         routeplan.no_load_capacities = 'HA'
@@ -616,8 +610,6 @@ class TestRoutePlan(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'no_load_capacities', (int, long), str)
         assert err_msg == str(excinfo.value)
 
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
         routeplan.no_load_capacities = 5
@@ -626,9 +618,7 @@ class TestRoutePlan(object):
         err_msg = "'{}.no_load_capacities' must be between 0-4".format(cls_name)
         assert err_msg == str(excinfo.value)
 
-    def test_is_valid(self, orders, drivers):
-        routeplan = RoutePlan(request_id='1234', callback_url='http://someurl',
-                              status_callback_url='http://somestatusurl')
+    def test_is_valid(self, orders, drivers, routeplan):
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
         routeplan.no_load_capacities = 3
