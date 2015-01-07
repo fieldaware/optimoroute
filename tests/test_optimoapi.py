@@ -12,7 +12,7 @@ from optimo import (
     RoutePlan,
     OptimoError,
 )
-from optimo.util import OptimoEncoder, validate_scheme
+from optimo.util import OptimoEncoder, validate_url
 
 from tests.schema.v1 import RoutePlanValidator
 
@@ -49,7 +49,7 @@ def route_plan():
 
 def test_validate_scheme():
     with pytest.raises(OptimoError) as excinfo:
-        validate_scheme('some.url.com')
+        validate_url('some.url.com')
 
     assert str(excinfo.value) == ("The url: 'some.url.com' does not define a "
                                   "protocol scheme")

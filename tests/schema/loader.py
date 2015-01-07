@@ -12,7 +12,7 @@ def _get_json_file(dirpath):
     """Returns the first .json filename it encounters on the passed directory
     path.
 
-    :param dirpath: `str` name of the directory we're going to search for json
+    :param dirpath: ``str`` name of the directory we're going to search for json
                     files.
     :return: the first json filename we encounter.
     """
@@ -25,7 +25,7 @@ def _load_schema_store():
     their version number. This assumes that each JSON schema version is placed
     in their own directory(e.g. v1, v2, etc)
 
-    :return: `dict`
+    :return: ``dict``
     """
     store = {}
     for entry in os.listdir(CURRENT_DIR):

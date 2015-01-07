@@ -47,10 +47,10 @@ ITERABLES = (list, tuple)
 class SchedulingInfo(BaseModel):
     """Scheduling information if order is already scheduled
 
-    :param scheduled_at: `datetime.datetime` instance of when driver is expected
+    :param scheduled_at: ``datetime.datetime`` instance of when driver is expected
         at the location
-    :param scheduled_driver: `str` driver id or :class:`optimo.models.Driver <Driver> object`
-    :param locked: `bool` that indicates if the order can be moved (to a
+    :param scheduled_driver: ``str`` driver id or :class:`optimo.models.Driver <Driver> object`
+    :param locked: ``bool`` that indicates if the order can be moved (to a
         different time or assigned to a different driver) or is fixed.
     """
     def __init__(self, scheduled_at, scheduled_driver, locked=False):
@@ -80,8 +80,8 @@ class TimeWindow(BaseModel):
     """Time window that defines the earliest time alowed to begin the service
     and the dealine to end the service.
 
-    :param start_time: `datetime.datetime` instance of when to begin the service
-    :param end_time: `datetime.datetime` instance of the service's deadline
+    :param start_time: ``datetime.datetime`` instance of when to begin the service
+    :param end_time: ``datetime.datetime`` instance of the service's deadline
     """
     def __init__(self, start_time, end_time):
         self.start_time = start_time
@@ -102,16 +102,16 @@ class TimeWindow(BaseModel):
 class Order(BaseModel):
     """Order that needs to be planned by optimoroute service.
 
-    :param id: `str` unique order identifier
-    :param lat: `numbers.Number` GPS latitude of the delivery/service location
-    :param lng: `numbers.Number` GPS longitude of the delivery/service location
-    :param duration: `int` number of minutes required to unload the goods or
+    :param id: ``str`` unique order identifier
+    :param lat: ``numbers.Number`` GPS latitude of the delivery/service location
+    :param lng: ``numbers.Number`` GPS longitude of the delivery/service location
+    :param duration: ``int`` number of minutes required to unload the goods or
         perform a task at the given location.
     :param time_window: :class: `optimo.models.TimeWindow` instance for this order
-    :param priority: `str` order priority value which can be one of ('L', 'M', 'H', 'C')
-    :param skills: `list` of strings of driver skills used to differentiate some drivers
-        from others.
-    :param assigned_to: `str` driver id this order must be assigned to.
+    :param priority: ``str`` order priority value which can be one of ('L', 'M', 'H', 'C')
+    :param skills: ``list`` of strings of driver skills used to differentiate
+        some drivers from others.
+    :param assigned_to: ``str`` driver id this order must be assigned to.
     :param scheduling_info: :class:`optimo.models.SchedulingInfo <SchedulingInfo>` object
         if order is already scheduled.
     """
@@ -195,9 +195,9 @@ class Order(BaseModel):
 class Break(BaseModel):
     """Break information for the driver
 
-    :param earliest_start: `datetime.datetime` instance of the earliest time to start the break
-    :param latest_start: `datetime.datetime` instance of the latest time to start the break
-    :param duration: `int` number of minutes of the break's duration
+    :param earliest_start: ``datetime.datetime`` instance of the earliest time to start the break
+    :param latest_start: ``datetime.datetime`` instance of the latest time to start the break
+    :param duration: ``int`` number of minutes of the break's duration
     """
     def __init__(self, earliest_start, latest_start, duration):
         self.earliest_start = earliest_start
@@ -221,11 +221,11 @@ class Break(BaseModel):
 class WorkShift(BaseModel):
     """Work shift information for a driver
 
-    :param start_work: `datetime.datetime` instance of when work starts
-    :param end_work: `datetime.datetime` instance of when work ends
-    :param allowed_overtime: `int` number of minutes denoting the allowed overtime
+    :param start_work: ``datetime.datetime`` instance of when work starts
+    :param end_work: ``datetime.datetime`` instance of when work ends
+    :param allowed_overtime: ``int`` number of minutes denoting the allowed overtime
     :param break_: :class:`optimo.models.Break <Break>` object containing break information
-    :param unavailable_times: `list` of :class:`optimo.models.TimeWindow` objects that
+    :param unavailable_times: ``list`` of :class:`optimo.models.TimeWindow` objects that
         describe when a technician is not available.
     """
     def __init__(self, start_work, end_work, allowed_overtime=None, break_=None,
@@ -277,14 +277,14 @@ class WorkShift(BaseModel):
 class Driver(BaseModel):
     """Driver object that will be assigned to orders
 
-    :param id: `str` unique driver identifier
-    :param start_lat: `numbers.Number` GPS latitude of the starting location of the driver
-    :param start_lng: `numbers.Number` GPS longitude of the starting location of the driver
-    :param end_lat: `numbers.Number` GPS latitude of the ending location of the driver
-    :param end_lng: `numbers.Number` GPS longitude of the ending location of the driver
-    :param work_shifts: `list` of :class:`optimo.models.WorkShift` objects
-    :param skills: `list` of string skill ids for the driver
-    :param speed_factor: `numbers.Number` denoting the driving speed adjustment
+    :param id: ``str`` unique driver identifier
+    :param start_lat: ``numbers.Number`` GPS latitude of the starting location of the driver
+    :param start_lng: ``numbers.Number`` GPS longitude of the starting location of the driver
+    :param end_lat: ``numbers.Number`` GPS latitude of the ending location of the driver
+    :param end_lng: ``numbers.Number`` GPS longitude of the ending location of the driver
+    :param work_shifts: ``list`` of :class:`optimo.models.WorkShift` objects
+    :param skills: ``list`` of string skill ids for the driver
+    :param speed_factor: ``numbers.Number`` denoting the driving speed adjustment
     """
 
     def __init__(self, id, start_lat, start_lng, end_lat, end_lng,
@@ -354,14 +354,14 @@ class RoutePlan(BaseModel):
     """Route plan object containing the necessary information to perform a plan
     optimization request.
 
-    :param request_id: `str` unique identifier for the request
-    :param callback_url: `str` callback url that will be called when optimization
+    :param request_id: ``str`` unique identifier for the request
+    :param callback_url: ``str`` callback url that will be called when optimization
         is complete. ``request_id`` parameter will be passed to the callback
-    :param status_callback_url: `str` callback url that will be called to report
+    :param status_callback_url: ``str`` callback url that will be called to report
         the planning status. ``request_id`` parameter will be passed to the callback
-    :param orders: `list` of :class:`optimo.models.Order` objects
-    :param drivers: `list` of :class:`optimo.models.Driver` objects
-    :param no_load_capacities: `int` number of vehicle load capacity constraints
+    :param orders: ``list`` of :class:`optimo.models.Order` objects
+    :param drivers: ``list`` of :class:`optimo.models.Driver` objects
+    :param no_load_capacities: ``int`` number of vehicle load capacity constraints
         that will be used.
     """
     NO_LOAD_CAPACITIES_MIN = 0
@@ -378,7 +378,7 @@ class RoutePlan(BaseModel):
         self.no_load_capacities = no_load_capacities
 
     def validate(self):
-        from .util import validate_scheme
+        from .util import validate_url
 
         cls_name = self.__class__.__name__
         self.validate_type('request_id', basestring)
@@ -386,10 +386,10 @@ class RoutePlan(BaseModel):
             raise ValueError("'{}.request_id' cannot be an empty string".format(cls_name))
 
         self.validate_type('callback_url', basestring)
-        validate_scheme(self.callback_url)
+        validate_url(self.callback_url)
 
         self.validate_type('status_callback_url', basestring)
-        validate_scheme(self.status_callback_url)
+        validate_url(self.status_callback_url)
 
         self.validate_type('orders', ITERABLES)
         if not self.orders:

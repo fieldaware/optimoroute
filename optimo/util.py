@@ -34,10 +34,10 @@ class OptimoEncoder(CoreOptimoEncoder):
         return super(OptimoEncoder, self).default(o)
 
 
-def validate_scheme(url):
+def validate_url(url):
     """Asserts that the url string has a valid protocol scheme.
 
-    :param url: `str` url we want to validate
+    :param url: ``str`` url we want to validate
     :raises OptimoError: When we can't deduce a valid protocol scheme
     """
     _url = parse_url(url)
@@ -51,15 +51,15 @@ def validate_config_params(optimo_url, version, access_key):
     :class:`optimo.api.OptimoAPI` constructor.
 
     :param optimo_url: string url of the optimoroute's service
-    :param version: `int` or `str` denoting the API version
+    :param version: ``int`` or ``str`` denoting the API version
     :param access_key: string access key provided by optimoroute
-    :return: `tuple` of the, possibly adjusted, passed parameters.
+    :return: ``tuple`` of the, possibly adjusted, passed parameters.
     :raises OptimoError: On providing incomplete or invalid config data
     """
     if not optimo_url or not isinstance(optimo_url, basestring):
         raise OptimoError("'optimo_url' must be a url string")
 
-    validate_scheme(optimo_url)
+    validate_url(optimo_url)
 
     if not version or not isinstance(version, basestring) or not \
             version.startswith('v'):
