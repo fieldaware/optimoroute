@@ -125,7 +125,7 @@ class Order(BaseModel):
         self.time_window = time_window
         # (M)edium is the default for the OptimoRoute service
         self.priority = priority
-        self.skills = skills or []
+        self.skills = skills if skills is not None else []
         # TODO: support both driver id strings and objects. Make sure driver exists
         self.assigned_to = assigned_to
         self.scheduling_info = scheduling_info
@@ -234,7 +234,8 @@ class WorkShift(BaseModel):
         self.end_work = end_work
         self.allowed_overtime = allowed_overtime
         self.break_ = break_
-        self.unavailable_times = unavailable_times or []
+        self.unavailable_times = (unavailable_times if unavailable_times
+                                  is not None else [])
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -294,8 +295,8 @@ class Driver(BaseModel):
         self.start_lng = start_lng
         self.end_lat = end_lat
         self.end_lng = end_lng
-        self.work_shifts = work_shifts or []
-        self.skills = skills or []
+        self.work_shifts = work_shifts if work_shifts is not None else []
+        self.skills = skills if skills is not None else []
         self.speed_factor = speed_factor
 
     def validate(self):
@@ -373,8 +374,8 @@ class RoutePlan(BaseModel):
         self.request_id = request_id
         self.callback_url = callback_url
         self.status_callback_url = status_callback_url
-        self.orders = orders or []
-        self.drivers = drivers or []
+        self.orders = orders if orders is not None else []
+        self.drivers = drivers if drivers is not None else []
         self.no_load_capacities = no_load_capacities
 
     def validate(self):
