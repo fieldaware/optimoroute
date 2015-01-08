@@ -60,7 +60,7 @@ class SchedulingInfo(BaseModel):
 
     def validate(self):
         self.validate_type('scheduled_at', datetime.datetime)
-        self.validate_type('scheduled_driver', (str, Driver))
+        self.validate_type('scheduled_driver', (basestring, Driver))
         self.validate_type('locked', bool)
 
     def as_optimo_schema(self):
@@ -126,7 +126,6 @@ class Order(BaseModel):
         # (M)edium is the default for the OptimoRoute service
         self.priority = priority
         self.skills = skills if skills is not None else []
-        # TODO: support both driver id strings and objects. Make sure driver exists
         self.assigned_to = assigned_to
         self.scheduling_info = scheduling_info
 
@@ -162,7 +161,7 @@ class Order(BaseModel):
                 )
 
         if self.assigned_to is not None:
-            self.validate_type('assigned_to', basestring)
+            self.validate_type('assigned_to', (basestring, Driver))
 
         if self.scheduling_info is not None:
             self.validate_type('scheduling_info', SchedulingInfo)
@@ -184,7 +183,10 @@ class Order(BaseModel):
             d['skills'] = self.skills
 
         if self.assigned_to:
-            d['assignedTo'] = self.assigned_to
+            if isinstance(self.assigned_to, Driver):
+                d['assignedTo'] = self.assigned_to.id
+            else:
+                d['assignedTo'] = self.assigned_to
 
         if self.scheduling_info:
             d['schedulingInfo'] = self.scheduling_info
@@ -419,8 +421,9 @@ class RoutePlan(BaseModel):
                     format(cls_name)
                 )
 
-        # ascertain that all driver id references of scheduling_info, inside
-        # each order, correspond to actual driver objects inside 'drivers'.
+        # ascertain that all driver id references of
+        # SchedulingInfo.scheduled_driver and Order.assigned_to inside
+        # correspond to actual driver objects inside 'drivers'.
         driver_ids = [drv.id for drv in self.drivers]
         for order in self.orders:
             if order.scheduling_info:
@@ -430,6 +433,15 @@ class RoutePlan(BaseModel):
                     raise OptimoValidationError(
                         "SchedulingInfo defines driver with id: '{}' that is "
                         "not present in 'drivers' list".format(si_driver_id)
+                    )
+            if order.assigned_to:
+                order_schema = order.as_optimo_schema()
+                order_driver_id = order_schema['assignedTo']
+                if order_driver_id not in driver_ids:
+                    raise OptimoValidationError(
+                        "The order with id: '{}' is assigned to driver with id:"
+                        " '{}' that is not present in 'drivers' list"
+                        .format(order.id, order_driver_id)
                     )
 
     def as_optimo_schema(self):

@@ -166,7 +166,7 @@ class TestSchedulingInfo(object):
         si = SchedulingInfo(scheduled_at=dtime, scheduled_driver=1)
         with pytest.raises(TypeError) as excinfo:
             si.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', (str, Driver), int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', (basestring, Driver), int)
         assert err_msg == str(excinfo.value)
 
         # test it accepts a string as a driver
@@ -174,7 +174,7 @@ class TestSchedulingInfo(object):
         assert si.validate() is None
 
         # test it accepts a driver object too
-        drv = Driver('3', 3, 4, 4, 5)
+        drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         si = SchedulingInfo(scheduled_at=dtime, scheduled_driver=drv)
         assert si.validate() is None
 
@@ -330,8 +330,17 @@ class TestOrder(object):
         order.assigned_to = 4
         with pytest.raises(TypeError) as excinfo:
             order.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'assigned_to', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'assigned_to', (basestring, Driver), int)
         assert err_msg == str(excinfo.value)
+
+        # test it accepts a string as a driver
+        order.assigned_to = 'rantanplan'
+        assert order.validate() is None
+
+        # test it accepts a driver objects too
+        drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
+        order.assigned_to = drv
+        assert order.validate() is None
 
     def test_scheduling_info(self, cls_name):
         order = Order(id='3', lat=5.2, lng=6.1, duration=7)
@@ -348,7 +357,8 @@ class TestOrder(object):
         order = Order(id='3', lat=5.2, lng=6.1, duration=7)
         order.time_window = TimeWindow(start_time=dtime, end_time=dtime)
         order.skills = ['handy', 'quiet']
-        order.assigned_to = 'Tom & Jerry'
+        order.assigned_to = Driver(id='Tom & Jerry', start_lat=3, start_lng=4,
+                                   end_lat=5, end_lng=6)
         order.scheduling_info = SchedulingInfo(scheduled_at=dtime, scheduled_driver='rantanplan')
         assert order.validate() is None
         assert jsonify(order) == (
@@ -497,11 +507,11 @@ class TestRoutePlan(object):
 
     @pytest.fixture
     def drivers(self):
-        drv1 = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
+        drv1 = Driver(id='Tom & Jerry', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv1.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv1.skills = ['calm', 'angry']
 
-        drv2 = Driver(id='4', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
+        drv2 = Driver(id='Sam & Max', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv2.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv2.skills = ['pirate', 'ninja']
 
@@ -601,6 +611,19 @@ class TestRoutePlan(object):
                   "is not present in 'drivers' list"
         assert err_msg == str(excinfo.value)
 
+    def test_orders_assigned_to(self, orders, drivers, routeplan):
+        order = Order(id='new_order', lat=3, lng=4, duration=5,
+                      assigned_to="New Driver")
+        routeplan.orders = list(orders)
+        # add the new order with the new and unknown driver
+        routeplan.orders.append(order)
+        routeplan.drivers = list(drivers)
+        with pytest.raises(OptimoValidationError) as excinfo:
+            routeplan.validate()
+        err_msg = ("The order with id: 'new_order' is assigned to driver with "
+                   "id: 'New Driver' that is not present in 'drivers' list")
+        assert err_msg == str(excinfo.value)
+
     def test_no_load_capacities(self, cls_name, orders, drivers, routeplan):
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
@@ -625,26 +648,27 @@ class TestRoutePlan(object):
         assert routeplan.validate() is None
         assert jsonify(routeplan) == (
             '{"noLoadCapacities": 3, "statusCallback": "http://somestatusurl",'
-            ' "drivers": [{"endLon": 5, "skills": ["calm", "angry"], '
-            '"endLat": 4, "startLat": 3, "workShifts": [{"workTimeFrom": '
+            ' "drivers": [{"endLon": 5, "skills": ["calm", "angry"], "endLat":'
+            ' 4, "startLat": 3, "workShifts": [{"workTimeFrom": '
             '"2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], '
-            '"startLon": 4, "id": "3"}, {"endLon": 5, "skills": '
+            '"startLon": 4, "id": "Tom & Jerry"}, {"endLon": 5, "skills": '
             '["pirate", "ninja"], "endLat": 4, "startLat": 3, "workShifts": '
             '[{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
-            '"2014-12-05T08:00"}], "startLon": 4, "id": "4"}, {"endLon": 5, '
-            '"skills": ["woofing", "barking"], "endLat": 4, "startLat": 3, '
-            '"workShifts": [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
-            '"2014-12-05T08:00"}], "startLon": 4, "id": "rantanplan"}], '
-            '"callback": "http://someurl", "requestId": "1234", "orders": '
-            '[{"assignedTo": "Tom & Jerry", "skills": ["handy", "quiet"], "tw":'
-            ' {"timeFrom": "2014-12-05T08:00", "timeTo": "2014-12-05T08:00"}, '
-            '"lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2, '
-            '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", "locked": '
-            'false, "scheduledDriver": "rantanplan"}, "id": "3"}, '
-            '{"assignedTo": "Sam & Max", "skills": ["barista", "terrorista"], '
-            '"tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
-            '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, '
-            '"lat": 5.2, "schedulingInfo": {"scheduledAt": "2014-12-05T08:00", '
-            '"locked": false, "scheduledDriver": "rantanplan"}, "id": "4"}]}'
+            '"2014-12-05T08:00"}], "startLon": 4, "id": "Sam & Max"}, '
+            '{"endLon": 5, "skills": ["woofing", "barking"], "endLat": 4, '
+            '"startLat": 3, "workShifts": [{"workTimeFrom": "2014-12-05T08:00",'
+            ' "workTimeTo": "2014-12-05T08:00"}], "startLon": 4, "id": '
+            '"rantanplan"}], "callback": "http://someurl", "requestId": "1234",'
+            ' "orders": [{"assignedTo": "Tom & Jerry", "skills": ["handy",'
+            ' "quiet"], "tw": {"timeFrom": "2014-12-05T08:00", '
+            '"timeTo": "2014-12-05T08:00"}, "lon": 6.1, "priority": "M", '
+            '"duration": 7, "lat": 5.2, "schedulingInfo": {"scheduledAt": '
+            '"2014-12-05T08:00", "locked": false, "scheduledDriver": '
+            '"rantanplan"}, "id": "3"}, {"assignedTo": "Sam & Max", "skills": '
+            '["barista", "terrorista"], "tw": {"timeFrom": "2014-12-05T08:00", '
+            '"timeTo": "2014-12-05T08:00"}, "lon": 6.1, "priority": "M", '
+            '"duration": 7, "lat": 5.2, "schedulingInfo": {"scheduledAt": '
+            '"2014-12-05T08:00", "locked": false, "scheduledDriver": '
+            '"rantanplan"}, "id": "4"}]}'
         )
         assert RoutePlanValidator.validate(dictify(routeplan)) is None
