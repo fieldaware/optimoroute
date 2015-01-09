@@ -12,7 +12,7 @@ packages = [
 
 setup(
     name="optimo",
-    version="0.0.3",
+    version="0.1.0",
     install_requires=[
         "requests",
         "pytz",
@@ -30,7 +30,7 @@ setup(
     packages=packages,
     long_description=readme,
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
