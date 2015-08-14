@@ -13,6 +13,7 @@ TimeWindowSchema = deepcopy(OrderSchema['properties']['tw'])
 DriverSchema = deepcopy(RoutePlanSchema['properties']['drivers']['items'])
 WorkShiftSchema = deepcopy(DriverSchema['properties']['workShifts']['items'])
 BreakSchema = deepcopy(WorkShiftSchema['properties']['break'])
+ServiceRegionPolygonSchema = deepcopy(DriverSchema['properties']['serviceRegions']['items'])
 
 # Validators
 RoutePlanValidator = Draft4Validator(RoutePlanSchema)
@@ -22,3 +23,4 @@ TimeWindowValidator = Draft4Validator(TimeWindowSchema)
 DriverValidator = Draft4Validator(DriverSchema)
 WorkShiftValidator = Draft4Validator(WorkShiftSchema)
 BreakValidator = Draft4Validator(BreakSchema)
+ServiceRegionPolygonValidator = Draft4Validator(ServiceRegionPolygonSchema)

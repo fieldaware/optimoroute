@@ -12,6 +12,7 @@ from optimo import (
     Break,
     SchedulingInfo,
     TimeWindow,
+    ServiceRegionPolygon,
 )
 from optimo.errors import OptimoValidationError
 from optimo.util import OptimoEncoder
@@ -24,6 +25,7 @@ from tests.schema.v1 import (
     WorkShiftValidator,
     SchedulingInfoValidator,
     TimeWindowValidator,
+    ServiceRegionPolygonValidator,
 )
 
 
@@ -371,6 +373,62 @@ class TestOrder(object):
         assert OrderValidator.validate(dictify(order)) is None
 
 
+class TestServiceRegion(object):
+    @pytest.fixture
+    def cls_name(self):
+        return ServiceRegionPolygon.__name__
+
+    def test_lat_lng_pairs(self, cls_name):
+        region = ServiceRegionPolygon(lat_lng_pairs=42)
+        with pytest.raises(TypeError) as excinfo:
+            region.validate()
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'lat_lng_pairs', (list, tuple), int)
+        assert err_msg == str(excinfo.value)
+
+        region = ServiceRegionPolygon(lat_lng_pairs=[])
+        with pytest.raises(ValueError) as excinfo:
+            region.validate()
+        err_msg = "'{}.lat_lng_pairs' cannot be empty".format(cls_name)
+        assert err_msg == str(excinfo.value)
+
+        region = ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (1, 1)])
+        with pytest.raises(ValueError) as excinfo:
+            region.validate()
+        err_msg = "'{}.lat_lng_pairs' must have at least 3 lat/lng pairs to form a " \
+                  "polygon".format(cls_name)
+        assert err_msg == str(excinfo.value)
+
+        region = ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (0, 1), (1, 1, 2)])
+        with pytest.raises(ValueError) as excinfo:
+            region.validate()
+        err_msg = "A lat/lng pair must consist of exactly 2 elements(lat and lng)"
+        assert err_msg == str(excinfo.value)
+
+        region = ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (0, 1), (1, '1')])
+        with pytest.raises(TypeError) as excinfo:
+            region.validate()
+        err_msg = "Latitude and longitude elements must be of type Number"
+        assert err_msg == str(excinfo.value)
+
+        region = ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (0, 1), (-91, 1)])
+        with pytest.raises(ValueError) as excinfo:
+            region.validate()
+        err_msg = "Latitude can take values between -90 and +90"
+        assert err_msg == str(excinfo.value)
+
+        region = ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (0, 1), (-90, 181)])
+        with pytest.raises(ValueError) as excinfo:
+            region.validate()
+        err_msg = "Longitude can take values between -180 and +180"
+        assert err_msg == str(excinfo.value)
+
+    def test_is_valid(self):
+        region = ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (0, 1), (-90, 180)])
+        assert region.validate() is None
+        assert jsonify(region) == '[[0, 0], [0, 1], [-90, 180]]'
+        assert ServiceRegionPolygonValidator.validate(dictify(region)) is None
+
+
 class TestDriver(object):
     @pytest.fixture
     def cls_name(self):
@@ -468,6 +526,31 @@ class TestDriver(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'speed_factor', Number, str)
         assert err_msg == str(excinfo.value)
 
+    def test_service_regions(self, cls_name):
+        drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
+        drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
+        drv.skills = ['calm', 'angry']
+        drv.speed_factor = 1.5
+        drv.service_regions = 'A region'
+        with pytest.raises(TypeError) as excinfo:
+            drv.validate()
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'service_regions', (list, tuple), str)
+        assert err_msg == str(excinfo.value)
+
+        drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
+        drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
+        drv.skills = ['calm', 'angry']
+        drv.speed_factor = 1.5
+        drv.service_regions = [
+            ServiceRegionPolygon(lat_lng_pairs=[(0, 1), (1, 1), (1, 2)]),
+            'Invaild Object'
+        ]
+        with pytest.raises(TypeError) as excinfo:
+            drv.validate()
+        err_msg = "'{}.service_regions' must contain elements of type {}"\
+            .format(cls_name, 'ServiceRegionPolygon')
+        assert err_msg == str(excinfo.value)
+
     def test_is_valid(self):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
@@ -475,11 +558,9 @@ class TestDriver(object):
         drv.speed_factor = 1.5
         assert drv.validate() is None
         assert jsonify(drv) == (
-            '{"endLon": 5, "skills": ["calm", "angry"], "endLat": 4, '
-            '"startLat": 3, "workShifts": [{"workTimeFrom": "2014-12-05T08:00",'
-            ' "workTimeTo": "2014-12-05T08:00"}], "speedFactor": 1.5, '
-            '"startLon": 4, "id": "3"}'
-        )
+            '{"endLon": 5, "serviceRegions": [], "workShifts": [{"workTimeFrom": "2014-12-05T08:00"'
+            ', "workTimeTo": "2014-12-05T08:00"}], "speedFactor": 1.5, "skills": ["calm", "angry"],'
+            ' "startLon": 4, "endLat": 4, "id": "3", "startLat": 3}')
         assert DriverValidator.validate(dictify(drv)) is None
 
 
@@ -510,10 +591,15 @@ class TestRoutePlan(object):
         drv1 = Driver(id='Tom & Jerry', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv1.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv1.skills = ['calm', 'angry']
+        drv1.service_regions = [ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (0, 1), (1, 1)])]
 
         drv2 = Driver(id='Sam & Max', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv2.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv2.skills = ['pirate', 'ninja']
+        drv2.service_regions = [
+            ServiceRegionPolygon(lat_lng_pairs=[(0, 0), (0, 1), (1, 1)]),
+            ServiceRegionPolygon(lat_lng_pairs=[(1, 1), (1, 2), (2, 2.5)]),
+        ]
 
         drv3 = Driver(id='rantanplan', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv3.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
@@ -647,28 +733,24 @@ class TestRoutePlan(object):
         routeplan.no_load_capacities = 3
         assert routeplan.validate() is None
         assert jsonify(routeplan) == (
-            '{"noLoadCapacities": 3, "statusCallback": "http://somestatusurl",'
-            ' "drivers": [{"endLon": 5, "skills": ["calm", "angry"], "endLat":'
-            ' 4, "startLat": 3, "workShifts": [{"workTimeFrom": '
-            '"2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], '
-            '"startLon": 4, "id": "Tom & Jerry"}, {"endLon": 5, "skills": '
-            '["pirate", "ninja"], "endLat": 4, "startLat": 3, "workShifts": '
-            '[{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
-            '"2014-12-05T08:00"}], "startLon": 4, "id": "Sam & Max"}, '
-            '{"endLon": 5, "skills": ["woofing", "barking"], "endLat": 4, '
-            '"startLat": 3, "workShifts": [{"workTimeFrom": "2014-12-05T08:00",'
-            ' "workTimeTo": "2014-12-05T08:00"}], "startLon": 4, "id": '
-            '"rantanplan"}], "callback": "http://someurl", "requestId": "1234",'
-            ' "orders": [{"assignedTo": "Tom & Jerry", "skills": ["handy",'
-            ' "quiet"], "tw": {"timeFrom": "2014-12-05T08:00", '
-            '"timeTo": "2014-12-05T08:00"}, "lon": 6.1, "priority": "M", '
-            '"duration": 7, "lat": 5.2, "schedulingInfo": {"scheduledAt": '
-            '"2014-12-05T08:00", "locked": false, "scheduledDriver": '
-            '"rantanplan"}, "id": "3"}, {"assignedTo": "Sam & Max", "skills": '
-            '["barista", "terrorista"], "tw": {"timeFrom": "2014-12-05T08:00", '
-            '"timeTo": "2014-12-05T08:00"}, "lon": 6.1, "priority": "M", '
-            '"duration": 7, "lat": 5.2, "schedulingInfo": {"scheduledAt": '
-            '"2014-12-05T08:00", "locked": false, "scheduledDriver": '
-            '"rantanplan"}, "id": "4"}]}'
+            '{"noLoadCapacities": 3, "statusCallback": "http://somestatusurl", "drivers": '
+            '[{"endLon": 5, "serviceRegions": [[[0, 0], [0, 1], [1, 1]]], "workShifts": '
+            '[{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], "skills":'
+            ' ["calm", "angry"], "startLon": 4, "endLat": 4, "id": "Tom & Jerry", "startLat": 3},'
+            ' {"endLon": 5, "serviceRegions": [[[0, 0], [0, 1], [1, 1]], [[1, 1], [1, 2], '
+            '[2, 2.5]]], "workShifts": [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
+            '"2014-12-05T08:00"}], "skills": ["pirate", "ninja"], "startLon": 4, "endLat": 4, '
+            '"id": "Sam & Max", "startLat": 3}, {"endLon": 5, "serviceRegions": [], "workShifts":'
+            ' [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], "skills":'
+            ' ["woofing", "barking"], "startLon": 4, "endLat": 4, "id": "rantanplan", "startLat": '
+            '3}], "callback": "http://someurl", "requestId": "1234", "orders": [{"assignedTo": '
+            '"Tom & Jerry", "skills": ["handy", "quiet"], "tw": {"timeFrom": "2014-12-05T08:00", '
+            '"timeTo": "2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2,'
+            ' "schedulingInfo": {"scheduledAt": "2014-12-05T08:00", "locked": false, '
+            '"scheduledDriver": "rantanplan"}, "id": "3"}, {"assignedTo": "Sam & Max", "skills": '
+            '["barista", "terrorista"], "tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
+            '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2, '
+            '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", "locked": false, '
+            '"scheduledDriver": "rantanplan"}, "id": "4"}]}'
         )
         assert RoutePlanValidator.validate(dictify(routeplan)) is None
