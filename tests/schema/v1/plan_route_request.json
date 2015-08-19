@@ -19,6 +19,7 @@
     "orders": {
       "type": "array",
       "minItems": 1,
+      "maxItems": 1000,
       "items": {
         "type": "object",
         "description": "Order object",
@@ -29,10 +30,14 @@
             "type": "string"
           },
           "lat": {
-            "type": "number"
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
           },
           "lon": {
-            "type": "number"
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
           },
           "duration": {
             "type": "integer",
@@ -105,6 +110,7 @@
     "drivers": {
       "type": "array",
       "minItems": 1,
+      "maxItems": 250,
       "items": {
         "type": "object",
         "properties": {
@@ -112,20 +118,27 @@
             "type": "string"
           },
           "startLat": {
-            "type": "number"
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
           },
           "startLon": {
-            "type": "number"
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
           },
           "endLat": {
-            "type": "number"
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
           },
           "endLon": {
-            "type": "number"
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
           },
           "workShifts": {
             "type": "array",
-            "minItems": 1,
             "items": {
               "type": "object",
               "properties": {
@@ -246,11 +259,22 @@
       "properties": {
         "serviceOutsideServiceAreas": {
           "type": "boolean"
+        },
+        "balancing": {
+          "enum": ["OFF", "ON", "ON_FORCE"]
+        },
+        "balanceBy": {
+          "enum": ["WT", "NUM"]
+        },
+        "balancingFactor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       },
       "additionalProperties": false
     }
   },
   "additionalProperties": false,
-  "required": ["requestId", "callback", "orders", "drivers", "statusCallback"]
+  "required": ["requestId", "callback", "orders", "drivers"]
 }

@@ -277,6 +277,41 @@ class WorkShift(BaseModel):
         return d
 
 
+class ServiceRegionPolygon(BaseModel):
+    """Service Region assigned to a driver
+
+    :param lat_lng_pairs: ``list`` of ``numbers.Number`` pairs that form a polygon area
+    """
+    def __init__(self, lat_lng_pairs):
+        self.lat_lng_pairs = lat_lng_pairs
+
+    def validate(self):
+        cls_name = self.__class__.__name__
+        self.validate_type('lat_lng_pairs', ITERABLES)
+
+        if not self.lat_lng_pairs:
+            raise ValueError("'{}.lat_lng_pairs' cannot be empty".format(cls_name))
+
+        if not len(self.lat_lng_pairs) > 2:
+            raise ValueError("'{}.lat_lng_pairs' must have at least 3 lat/lng pairs to form a "
+                             "polygon".format(cls_name))
+
+        for pair in self.lat_lng_pairs:
+            if not len(pair) == 2:
+                raise ValueError("A lat/lng pair must consist of exactly 2 elements(lat and lng)")
+
+            if not all(map(lambda n: isinstance(n, Number), pair)):
+                raise TypeError("Latitude and longitude elements must be of type Number")
+
+            if not (-90 <= pair[0] <= 90):
+                raise ValueError("Latitude can take values between -90 and +90")
+            if not (-180 <= pair[1] <= 180):
+                raise ValueError("Longitude can take values between -180 and +180")
+
+    def as_optimo_schema(self):
+        return self.lat_lng_pairs
+
+
 class Driver(BaseModel):
     """Driver object that will be assigned to orders
 
@@ -290,8 +325,8 @@ class Driver(BaseModel):
     :param speed_factor: ``numbers.Number`` denoting the driving speed adjustment
     """
 
-    def __init__(self, id, start_lat, start_lng, end_lat, end_lng,
-                 work_shifts=None, skills=None, speed_factor=None):
+    def __init__(self, id, start_lat, start_lng, end_lat, end_lng, work_shifts=None, skills=None,
+                 speed_factor=None, service_regions=None):
         self.id = id
         self.start_lat = start_lat
         self.start_lng = start_lng
@@ -300,6 +335,7 @@ class Driver(BaseModel):
         self.work_shifts = work_shifts if work_shifts is not None else []
         self.skills = skills if skills is not None else []
         self.speed_factor = speed_factor
+        self.service_regions = service_regions if service_regions is not None else []
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -337,6 +373,14 @@ class Driver(BaseModel):
         if self.speed_factor is not None:
             self.validate_type('speed_factor', Number)
 
+        self.validate_type('service_regions', ITERABLES)
+        for region in self.service_regions:
+            if not isinstance(region, ServiceRegionPolygon):
+                raise TypeError(
+                    "'{}.service_regions' must contain elements of type {}"
+                    .format(cls_name, 'ServiceRegionPolygon')
+                )
+
     def as_optimo_schema(self):
         self.validate()
         d = {
@@ -347,6 +391,7 @@ class Driver(BaseModel):
             'endLon': self.end_lng,
             'workShifts': self.work_shifts,
             'skills': self.skills,
+            'serviceRegions': self.service_regions,
         }
         if self.speed_factor:
             d['speedFactor'] = self.speed_factor

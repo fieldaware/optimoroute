@@ -7,6 +7,7 @@ from .models import (
     Order,
     RoutePlan,
     SchedulingInfo,
+    ServiceRegionPolygon,
 )
 
 from .api import OptimoAPI
