@@ -5,7 +5,8 @@ This is a python library for `OptimoRoute`_\ ’s web service.
 
 --------------
 
-**Note**: Although this is used internally and we continually improve it, it
+**Note**:
+ Although this is used internally and we continually improve it, it
  is still Beta software. Use with care.
 
 --------------

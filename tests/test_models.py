@@ -3,6 +3,7 @@ import json
 import pytest
 from datetime import datetime
 from numbers import Number
+from decimal import Decimal
 
 from optimo import (
     WorkShift,
@@ -13,6 +14,7 @@ from optimo import (
     SchedulingInfo,
     TimeWindow,
     ServiceRegionPolygon,
+    OptimizationParameters,
 )
 from optimo.errors import OptimoValidationError
 from optimo.util import OptimoEncoder
@@ -26,6 +28,7 @@ from tests.schema.v1 import (
     SchedulingInfoValidator,
     TimeWindowValidator,
     ServiceRegionPolygonValidator,
+    OptimizationParametersValidator,
 )
 
 
@@ -564,6 +567,65 @@ class TestDriver(object):
         assert DriverValidator.validate(dictify(drv)) is None
 
 
+class TestOptimizationParameters(object):
+    @pytest.fixture
+    def cls_name(self):
+        return OptimizationParameters.__name__
+
+    def test_service_outside_service_areas(self, cls_name):
+        op = OptimizationParameters(service_outside_service_areas=3)
+        with pytest.raises(TypeError) as excinfo:
+            op.validate()
+
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'service_outside_service_areas', bool, int)
+        assert str(excinfo.value) == err_msg
+
+    def test_balancing(self, cls_name):
+        op = OptimizationParameters(balancing=4)
+        with pytest.raises(TypeError) as excinfo:
+            op.validate()
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'balancing', basestring, int)
+        assert str(excinfo.value) == err_msg
+
+        op = OptimizationParameters(balancing='NONSENSE')
+        with pytest.raises(ValueError) as excinfo:
+            op.validate()
+        assert str(excinfo.value) == "'OptimizationParameters.balancing' must be one of " \
+                                     "('OFF', 'ON', 'ON_FORCE')"
+
+    def test_balance_by(self, cls_name):
+        op = OptimizationParameters(balance_by=3)
+        with pytest.raises(TypeError) as excinfo:
+            op.validate()
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'balance_by', basestring, int)
+        assert str(excinfo.value) == err_msg
+
+        op = OptimizationParameters(balance_by='NONSENSE')
+        with pytest.raises(ValueError) as excinfo:
+            op.validate()
+        assert str(excinfo.value) == "'OptimizationParameters.balancing' must be one of " \
+                                     "('WT', 'NUM')"
+
+    def test_balancing_factor(self, cls_name):
+        op = OptimizationParameters(balancing_factor=3)
+        with pytest.raises(TypeError) as excinfo:
+            op.validate()
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'balancing_factor', (float, Decimal), int)
+        assert str(excinfo.value) == err_msg
+
+        op = OptimizationParameters(balancing_factor=4.1)
+        with pytest.raises(ValueError) as excinfo:
+            op.validate()
+        assert str(excinfo.value) == "'OptimizationParameters.balancing_factor' must be in the" \
+                                     " range '0.0 - 1.0'"
+
+    def test_is_valid(self):
+        op = OptimizationParameters()
+        assert op.validate() is None
+        assert jsonify(op) == '{"balanceBy": "WT", "balancing": "ON_FORCE", ' \
+                              '"serviceOutsideServiceAreas": false, "balancingFactor": 0.3}'
+
+
 class TestRoutePlan(object):
     @pytest.fixture
     def routeplan(self):
@@ -727,6 +789,22 @@ class TestRoutePlan(object):
         err_msg = "'{}.no_load_capacities' must be between 0-4".format(cls_name)
         assert err_msg == str(excinfo.value)
 
+    def test_optimization_parameters(self, cls_name, orders, drivers, routeplan):
+        routeplan.orders = list(orders)
+        routeplan.drivers = list(drivers)
+        routeplan.no_load_capacities = 3
+        routeplan.optimization_parameters = []
+        with pytest.raises(TypeError) as excinfo:
+            routeplan.validate()
+
+        err_msg = TYPE_ERR_MSG.format(
+            cls_name,
+            'optimization_parameters',
+            OptimizationParameters,
+            list
+        )
+        assert err_msg == str(excinfo.value)
+
     def test_is_valid(self, orders, drivers, routeplan):
         routeplan.orders = list(orders)
         routeplan.drivers = list(drivers)
@@ -735,20 +813,22 @@ class TestRoutePlan(object):
         assert jsonify(routeplan) == (
             '{"noLoadCapacities": 3, "statusCallback": "http://somestatusurl", "drivers": '
             '[{"endLon": 5, "serviceRegions": [[[0, 0], [0, 1], [1, 1]]], "workShifts": '
-            '[{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], "skills":'
-            ' ["calm", "angry"], "startLon": 4, "endLat": 4, "id": "Tom & Jerry", "startLat": 3},'
+            '[{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], "skills": '
+            '["calm", "angry"], "startLon": 4, "endLat": 4, "id": "Tom & Jerry", "startLat": 3},'
             ' {"endLon": 5, "serviceRegions": [[[0, 0], [0, 1], [1, 1]], [[1, 1], [1, 2], '
             '[2, 2.5]]], "workShifts": [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": '
             '"2014-12-05T08:00"}], "skills": ["pirate", "ninja"], "startLon": 4, "endLat": 4, '
             '"id": "Sam & Max", "startLat": 3}, {"endLon": 5, "serviceRegions": [], "workShifts":'
             ' [{"workTimeFrom": "2014-12-05T08:00", "workTimeTo": "2014-12-05T08:00"}], "skills":'
-            ' ["woofing", "barking"], "startLon": 4, "endLat": 4, "id": "rantanplan", "startLat": '
-            '3}], "callback": "http://someurl", "requestId": "1234", "orders": [{"assignedTo": '
-            '"Tom & Jerry", "skills": ["handy", "quiet"], "tw": {"timeFrom": "2014-12-05T08:00", '
-            '"timeTo": "2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2,'
+            ' ["woofing", "barking"], "startLon": 4, "endLat": 4, "id": "rantanplan", '
+            '"startLat": 3}], "optimizationParameters": {"balanceBy": "WT", "balancing": '
+            '"ON_FORCE", "serviceOutsideServiceAreas": false, "balancingFactor": 0.3}, "callback":'
+            ' "http://someurl", "requestId": "1234", "orders": [{"assignedTo": "Tom & Jerry",'
+            ' "skills": ["handy", "quiet"], "tw": {"timeFrom": "2014-12-05T08:00", "timeTo":'
+            ' "2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2,'
             ' "schedulingInfo": {"scheduledAt": "2014-12-05T08:00", "locked": false, '
-            '"scheduledDriver": "rantanplan"}, "id": "3"}, {"assignedTo": "Sam & Max", "skills": '
-            '["barista", "terrorista"], "tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
+            '"scheduledDriver": "rantanplan"}, "id": "3"}, {"assignedTo": "Sam & Max", "skills":'
+            ' ["barista", "terrorista"], "tw": {"timeFrom": "2014-12-05T08:00", "timeTo": '
             '"2014-12-05T08:00"}, "lon": 6.1, "priority": "M", "duration": 7, "lat": 5.2, '
             '"schedulingInfo": {"scheduledAt": "2014-12-05T08:00", "locked": false, '
             '"scheduledDriver": "rantanplan"}, "id": "4"}]}'

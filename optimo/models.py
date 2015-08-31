@@ -2,6 +2,7 @@
 import abc
 import datetime
 from numbers import Number
+from decimal import Decimal
 
 from .errors import OptimoValidationError
 
@@ -398,6 +399,59 @@ class Driver(BaseModel):
         return d
 
 
+class OptimizationParameters(BaseModel):
+    """OptimizationParameters object, offering optimization options for a RoutePlan instance.
+
+    :param service_outside_service_areas: ``bool`` flag indicating whether orders, that do not
+        belong to a service area, can be scheduled.
+    :param balancing: ``str`` route balancing setting. Can be one of ('OFF', 'ON', 'ON_FORCE').
+    :param balance_by: ``str`` defines the criteria for balancing routes. Can be one
+        of ('WT', 'NUM').
+    :param balancing_factor: ``float`` or ``decimal.Decimal`` indicating the importance of balancing
+        compared to route costs.
+    """
+    BALANCING_VALUES = ('OFF', 'ON', 'ON_FORCE')
+    BALANCE_BY_VALUES = ('WT', 'NUM')
+
+    def __init__(self, service_outside_service_areas=False, balancing='ON_FORCE', balance_by='WT',
+                 balancing_factor=0.3):
+
+        self.service_outside_service_areas = service_outside_service_areas
+        self.balancing = balancing
+        self.balance_by = balance_by
+        self.balancing_factor = balancing_factor
+
+    def as_optimo_schema(self):
+        self.validate()
+        return {
+            'serviceOutsideServiceAreas': self.service_outside_service_areas,
+            'balancing': self.balancing,
+            'balanceBy': self.balance_by,
+            'balancingFactor': self.balancing_factor,
+        }
+
+    def validate(self):
+        cls_name = self.__class__.__name__
+        self.validate_type('service_outside_service_areas', bool)
+
+        self.validate_type('balancing', basestring)
+        if self.balancing not in self.BALANCING_VALUES:
+            raise ValueError(
+                "'{}.balancing' must be one of {!r}".format(cls_name, self.BALANCING_VALUES)
+            )
+
+        self.validate_type('balance_by', basestring)
+        if self.balance_by not in self.BALANCE_BY_VALUES:
+            raise ValueError(
+                "'{}.balancing' must be one of {!r}".format(cls_name, self.BALANCE_BY_VALUES)
+            )
+
+        self.validate_type('balancing_factor', (float, Decimal))
+        if not (0.0 <= self.balancing_factor <= 1.0):
+            raise ValueError("'{}.balancing_factor' must be in the range "
+                             "'0.0 - 1.0'".format(cls_name))
+
+
 class RoutePlan(BaseModel):
     """Route plan object containing the necessary information to perform a plan
     optimization request.
@@ -411,19 +465,22 @@ class RoutePlan(BaseModel):
     :param drivers: ``list`` of :class:`optimo.models.Driver` objects
     :param no_load_capacities: ``int`` number of vehicle load capacity constraints
         that will be used.
+    :param optimization_parameters: ``dict`` of optimization parameters
     """
     NO_LOAD_CAPACITIES_MIN = 0
     NO_LOAD_CAPACITIES_MAX = 4
 
-    def __init__(self, request_id, callback_url, status_callback_url,
-                 orders=None, drivers=None, no_load_capacities=None):
-        # TODO: support for serviceRegions and optimizationParamaters
+    def __init__(self, request_id, callback_url, status_callback_url, orders=None, drivers=None,
+                 no_load_capacities=0, optimization_parameters=None):
+
         self.request_id = request_id
         self.callback_url = callback_url
         self.status_callback_url = status_callback_url
         self.orders = orders if orders is not None else []
         self.drivers = drivers if drivers is not None else []
         self.no_load_capacities = no_load_capacities
+        self.optimization_parameters = (optimization_parameters if optimization_parameters
+                                        is not None else OptimizationParameters())
 
     def validate(self):
         from .util import validate_url
@@ -467,7 +524,7 @@ class RoutePlan(BaseModel):
                 )
 
         # ascertain that all driver id references of
-        # SchedulingInfo.scheduled_driver and Order.assigned_to inside
+        # SchedulingInfo.scheduled_driver and Order.assigned_to
         # correspond to actual driver objects inside 'drivers'.
         driver_ids = [drv.id for drv in self.drivers]
         for order in self.orders:
@@ -489,6 +546,8 @@ class RoutePlan(BaseModel):
                         .format(order.id, order_driver_id)
                     )
 
+        self.validate_type('optimization_parameters', OptimizationParameters)
+
     def as_optimo_schema(self):
         self.validate()
         d = {
@@ -497,6 +556,7 @@ class RoutePlan(BaseModel):
             'statusCallback': self.status_callback_url,
             'orders': self.orders,
             'drivers': self.drivers,
+            'optimizationParameters': self.optimization_parameters,
         }
         if self.no_load_capacities:
             d['noLoadCapacities'] = self.no_load_capacities
