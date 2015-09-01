@@ -7,6 +7,7 @@ from ..loader import SCHEMA_STORE
 
 # Schemas
 RoutePlanSchema = deepcopy(SCHEMA_STORE['v1'])
+OptimizationParametersSchema = deepcopy(RoutePlanSchema['properties']['optimizationParameters'])
 OrderSchema = deepcopy(RoutePlanSchema['properties']['orders']['items'])
 SchedulingInfoSchema = deepcopy(OrderSchema['properties']['schedulingInfo'])
 TimeWindowSchema = deepcopy(OrderSchema['properties']['tw'])
@@ -17,6 +18,7 @@ ServiceRegionPolygonSchema = deepcopy(DriverSchema['properties']['serviceRegions
 
 # Validators
 RoutePlanValidator = Draft4Validator(RoutePlanSchema)
+OptimizationParametersValidator = Draft4Validator(OptimizationParametersSchema)
 OrderValidator = Draft4Validator(OrderSchema)
 SchedulingInfoValidator = Draft4Validator(SchedulingInfoSchema)
 TimeWindowValidator = Draft4Validator(TimeWindowSchema)
