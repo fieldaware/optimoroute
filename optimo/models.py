@@ -324,10 +324,20 @@ class Driver(BaseModel):
     :param work_shifts: ``list`` of :class:`optimo.models.WorkShift` objects
     :param skills: ``list`` of string skill ids for the driver
     :param speed_factor: ``numbers.Number`` denoting the driving speed adjustment
+    :param service_regions: ``list`` of
+        :class:`optimo.models.ServiceRegionPolygon` denoting the areas the driver
+        can service
+    :param cost_per_hour: ``numbers.Number`` denoting the driver's cost per hour
+    :param cost_per_hour_for_overtime: ``numbers.Number`` denoting the driver's
+        cost of overtime per hour
+    :param cost_per_km: ``numbers.Number`` Driver's cost per kilometer
+    :param fixed_cost: ``numbers.Number`` Cost that is incurred every time this
+        driver is used, regardless of time
     """
 
     def __init__(self, id, start_lat, start_lng, end_lat, end_lng, work_shifts=None, skills=None,
-                 speed_factor=None, service_regions=None):
+                 speed_factor=None, service_regions=None, cost_per_hour=None, cost_per_hour_for_overtime=None,
+                 cost_per_km=None, fixed_cost=None):
         self.id = id
         self.start_lat = start_lat
         self.start_lng = start_lng
@@ -337,6 +347,10 @@ class Driver(BaseModel):
         self.skills = skills if skills is not None else []
         self.speed_factor = speed_factor
         self.service_regions = service_regions if service_regions is not None else []
+        self.cost_per_hour = cost_per_hour
+        self.cost_per_hour_for_overtime = cost_per_hour_for_overtime
+        self.cost_per_km = cost_per_km
+        self.fixed_cost = fixed_cost
 
     def validate(self):
         cls_name = self.__class__.__name__
@@ -382,6 +396,18 @@ class Driver(BaseModel):
                     .format(cls_name, 'ServiceRegionPolygon')
                 )
 
+        if self.cost_per_hour is not None:
+            self.validate_type('cost_per_hour', Number)
+
+        if self.cost_per_hour_for_overtime is not None:
+            self.validate_type('cost_per_hour_for_overtime', Number)
+
+        if self.cost_per_km is not None:
+            self.validate_type('cost_per_km', Number)
+
+        if self.fixed_cost is not None:
+            self.validate_type('fixed_cost', Number)
+
     def as_optimo_schema(self):
         self.validate()
         d = {
@@ -394,8 +420,18 @@ class Driver(BaseModel):
             'skills': self.skills,
             'serviceRegions': self.service_regions,
         }
+
         if self.speed_factor:
             d['speedFactor'] = self.speed_factor
+        if self.cost_per_hour:
+            d['costPerHour'] = self.cost_per_hour
+        if self.cost_per_hour_for_overtime:
+            d['costPerHourForOvertime'] = self.cost_per_hour_for_overtime
+        if self.cost_per_km:
+            d['costPerKm'] = self.cost_per_km
+        if self.fixed_cost:
+            d['fixedCost'] = self.fixed_cost
+
         return d
 
 
