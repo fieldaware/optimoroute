@@ -12,7 +12,7 @@ packages = [
 
 setup(
     name="optimo",
-    version="0.2.1",
+    version="0.2.2",
     install_requires=[
         "requests",
         "pytz",
