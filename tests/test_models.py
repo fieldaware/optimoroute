@@ -437,7 +437,7 @@ class TestDriver(object):
     def cls_name(self):
         return Driver.__name__
 
-    def test_id(self, cls_name):
+    def test_id_validation_fail(self, cls_name):
         drv = Driver(id=3, start_lat='3', start_lng='4', end_lat='4', end_lng='5')
         with pytest.raises(TypeError) as excinfo:
             drv.validate()
@@ -450,35 +450,35 @@ class TestDriver(object):
         err_msg = "'{}.id' cannot be empty".format(cls_name)
         assert err_msg == str(excinfo.value)
 
-    def test_start_lat(self, cls_name):
+    def test_start_lat_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat='3', start_lng='4', end_lat='4', end_lng='5')
         with pytest.raises(TypeError) as excinfo:
             drv.validate()
         err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lat', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_start_lng(self, cls_name):
+    def test_start_lng_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng='4', end_lat='4', end_lng='5')
         with pytest.raises(TypeError) as excinfo:
             drv.validate()
         err_msg = TYPE_ERR_MSG.format(cls_name, 'start_lng', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_end_lat(self, cls_name):
+    def test_end_lat_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat='4', end_lng='5')
         with pytest.raises(TypeError) as excinfo:
             drv.validate()
         err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lat', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_end_lng(self, cls_name):
+    def test_end_lng_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng='5')
         with pytest.raises(TypeError) as excinfo:
             drv.validate()
         err_msg = TYPE_ERR_MSG.format(cls_name, 'end_lng', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_work_shifts(self, cls_name):
+    def test_work_shifts_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = 4
         with pytest.raises(TypeError) as excinfo:
@@ -502,7 +502,7 @@ class TestDriver(object):
             format(cls_name)
         assert err_msg == str(excinfo.value)
 
-    def test_skills(self, cls_name):
+    def test_skills_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv.skills = 3
@@ -519,7 +519,7 @@ class TestDriver(object):
         err_msg = "'{}.skills' must contain elements of type str".format(cls_name)
         assert err_msg == str(excinfo.value)
 
-    def test_speed_factor(self, cls_name):
+    def test_speed_factor_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv.skills = ['calm', 'angry']
@@ -529,7 +529,7 @@ class TestDriver(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'speed_factor', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_service_regions(self, cls_name):
+    def test_service_regions_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv.skills = ['calm', 'angry']
@@ -554,7 +554,7 @@ class TestDriver(object):
             .format(cls_name, 'ServiceRegionPolygon')
         assert err_msg == str(excinfo.value)
 
-    def test_cost_per_hour(self, cls_name):
+    def test_cost_per_hour_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv.skills = ['calm', 'angry']
@@ -564,7 +564,7 @@ class TestDriver(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'cost_per_hour', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_cost_per_hour_for_overtime(self, cls_name):
+    def test_cost_per_hour_for_overtime_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv.skills = ['calm', 'angry']
@@ -574,7 +574,7 @@ class TestDriver(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'cost_per_hour_for_overtime', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_cost_per_km(self, cls_name):
+    def test_cost_per_km_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv.skills = ['calm', 'angry']
@@ -584,7 +584,7 @@ class TestDriver(object):
         err_msg = TYPE_ERR_MSG.format(cls_name, 'cost_per_km', Number, str)
         assert err_msg == str(excinfo.value)
 
-    def test_fixed_cost(self, cls_name):
+    def test_fixed_cost_validation_fail(self, cls_name):
         drv = Driver(id='3', start_lat=3, start_lng=4, end_lat=4, end_lng=5)
         drv.work_shifts = [WorkShift(start_work=dtime, end_work=dtime)]
         drv.skills = ['calm', 'angry']
