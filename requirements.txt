@@ -1,4 +1,4 @@
-requests==2.5.1
+requests>=2.20.0
 jsonschema==2.5.1
 pytz==2014.10
 pytest==2.7.0
