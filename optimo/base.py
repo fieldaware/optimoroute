@@ -3,7 +3,7 @@ import json
 
 import requests
 
-from optimo.util import CoreOptimoEncoder
+from .util import CoreOptimoEncoder
 
 
 ENDPOINT_METHODS = {
