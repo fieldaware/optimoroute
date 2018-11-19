@@ -87,7 +87,7 @@ class CoreOptimoAPI(object):
         :return: dictionary containing the server's raw response
         """
         method = ENDPOINT_METHODS[endpoint]
-        url = u'/'.join([self.base_url, self.version, endpoint])
+        url = '/'.join([self.base_url, self.version, endpoint])
         params = {'key': self.access_key}
 
         if method == 'GET':

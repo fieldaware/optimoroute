@@ -56,17 +56,17 @@ def validate_config_params(optimo_url, version, access_key):
     :return: ``tuple`` of the, possibly adjusted, passed parameters.
     :raises OptimoError: On providing incomplete or invalid config data
     """
-    if not optimo_url or not isinstance(optimo_url, basestring):
+    if not optimo_url or not isinstance(optimo_url, str):
         raise OptimoError("'optimo_url' must be a url string")
 
     validate_url(optimo_url)
 
-    if not version or not isinstance(version, basestring) or not \
+    if not version or not isinstance(version, str) or not \
             version.startswith('v'):
         raise OptimoError("'version' must be a string denoting the API version "
                           "you want to use('v1', 'v2', etc")
 
-    if not access_key or not isinstance(access_key, basestring):
+    if not access_key or not isinstance(access_key, str):
         raise OptimoError("'access_key' must be the string access key provided "
                           "to you by optimoroute")
     return optimo_url, version, access_key

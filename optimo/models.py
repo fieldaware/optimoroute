@@ -7,9 +7,8 @@ from decimal import Decimal
 from .errors import OptimoValidationError
 
 
-class BaseModel(object):
+class BaseModel(object, metaclass=abc.ABCMeta):
     """Abstract base class that all OptimoRoute entities must subclass"""
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def validate(self):
@@ -61,7 +60,7 @@ class SchedulingInfo(BaseModel):
 
     def validate(self):
         self.validate_type('scheduled_at', datetime.datetime)
-        self.validate_type('scheduled_driver', (basestring, Driver))
+        self.validate_type('scheduled_driver', (str, Driver))
         self.validate_type('locked', bool)
 
     def as_optimo_schema(self):
@@ -139,14 +138,14 @@ class Order(BaseModel):
         self.validate_type('lat', Number)
         self.validate_type('lng', Number)
 
-        self.validate_type('duration', (int, long))
+        self.validate_type('duration', (int, int))
         if self.duration < 0:
             raise ValueError("'{}.duration' cannot be negative".format(cls_name))
 
         if self.time_window is not None:
             self.validate_type('time_window', TimeWindow)
 
-        self.validate_type('priority', basestring)
+        self.validate_type('priority', str)
         if self.priority not in ('L', 'M', 'H', 'C'):
             raise ValueError(
                 "'{}.priority' must be one of ('L', 'M', 'H', 'C')"
@@ -155,14 +154,14 @@ class Order(BaseModel):
 
         self.validate_type('skills', ITERABLES)
         for skill in self.skills:
-            if not isinstance(skill, basestring):
+            if not isinstance(skill, str):
                 raise TypeError(
                     "'{}.skills' must contain elements of type str"
                     .format(cls_name)
                 )
 
         if self.assigned_to is not None:
-            self.validate_type('assigned_to', (basestring, Driver))
+            self.validate_type('assigned_to', (str, Driver))
 
         if self.scheduling_info is not None:
             self.validate_type('scheduling_info', SchedulingInfo)
@@ -210,7 +209,7 @@ class Break(BaseModel):
     def validate(self):
         self.validate_type('earliest_start', datetime.datetime)
         self.validate_type('latest_start', datetime.datetime)
-        self.validate_type('duration', (int, long))
+        self.validate_type('duration', (int, int))
 
     def as_optimo_schema(self):
         self.validate()
@@ -246,7 +245,7 @@ class WorkShift(BaseModel):
         self.validate_type('end_work', datetime.datetime)
 
         if self.allowed_overtime is not None:
-            self.validate_type('allowed_overtime', (int, long))
+            self.validate_type('allowed_overtime', (int, int))
 
         if self.break_ is not None:
             self.validate_type('break_', Break)
@@ -301,7 +300,7 @@ class ServiceRegionPolygon(BaseModel):
             if not len(pair) == 2:
                 raise ValueError("A lat/lng pair must consist of exactly 2 elements(lat and lng)")
 
-            if not all(map(lambda n: isinstance(n, Number), pair)):
+            if not all([isinstance(n, Number) for n in pair]):
                 raise TypeError("Latitude and longitude elements must be of type Number")
 
             if not (-90 <= pair[0] <= 90):
@@ -354,7 +353,7 @@ class Driver(BaseModel):
 
     def validate(self):
         cls_name = self.__class__.__name__
-        self.validate_type('id', basestring)
+        self.validate_type('id', str)
         if not self.id:
             raise ValueError("'{}.id' cannot be empty".format(cls_name))
 
@@ -379,7 +378,7 @@ class Driver(BaseModel):
 
         self.validate_type('skills', ITERABLES)
         for skill in self.skills:
-            if not isinstance(skill, basestring):
+            if not isinstance(skill, str):
                 raise TypeError(
                     "'{}.skills' must contain elements of type str"
                     .format(cls_name)
@@ -470,13 +469,13 @@ class OptimizationParameters(BaseModel):
         cls_name = self.__class__.__name__
         self.validate_type('service_outside_service_areas', bool)
 
-        self.validate_type('balancing', basestring)
+        self.validate_type('balancing', str)
         if self.balancing not in self.BALANCING_VALUES:
             raise ValueError(
                 "'{}.balancing' must be one of {!r}".format(cls_name, self.BALANCING_VALUES)
             )
 
-        self.validate_type('balance_by', basestring)
+        self.validate_type('balance_by', str)
         if self.balance_by not in self.BALANCE_BY_VALUES:
             raise ValueError(
                 "'{}.balancing' must be one of {!r}".format(cls_name, self.BALANCE_BY_VALUES)
@@ -522,14 +521,14 @@ class RoutePlan(BaseModel):
         from .util import validate_url
 
         cls_name = self.__class__.__name__
-        self.validate_type('request_id', basestring)
+        self.validate_type('request_id', str)
         if not self.request_id:
             raise ValueError("'{}.request_id' cannot be an empty string".format(cls_name))
 
-        self.validate_type('callback_url', basestring)
+        self.validate_type('callback_url', str)
         validate_url(self.callback_url)
 
-        self.validate_type('status_callback_url', basestring)
+        self.validate_type('status_callback_url', str)
         validate_url(self.status_callback_url)
 
         self.validate_type('orders', ITERABLES)
@@ -551,7 +550,7 @@ class RoutePlan(BaseModel):
                                     " {}".format(cls_name, 'Driver'))
 
         if self.no_load_capacities is not None:
-            self.validate_type('no_load_capacities', (int, long))
+            self.validate_type('no_load_capacities', (int, int))
             if (self.no_load_capacities < self.NO_LOAD_CAPACITIES_MIN or
                     self.no_load_capacities > self.NO_LOAD_CAPACITIES_MAX):
                 raise ValueError(

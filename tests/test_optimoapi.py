@@ -124,21 +124,21 @@ class TestOptimoAPIConfiguration(object):
 def test_successful_get(optimo_api):
     data = optimo_api.get('1234')
     assert data == {
-        u'creationTime': u'2014-12-04T17:01:52',
-        u'requestId': u'1234',
-        u'result': {
-            u'routes': [
+        'creationTime': '2014-12-04T17:01:52',
+        'requestId': '1234',
+        'result': {
+            'routes': [
                 {
-                    u'driverId': u'123',
-                    u'orders': [
-                        {u'id': u'123', u'scheduledAt': u'2014-12-05T08:04'},
-                        {u'id': u'456', u'scheduledAt': u'2014-12-05T08:27'}
+                    'driverId': '123',
+                    'orders': [
+                        {'id': '123', 'scheduledAt': '2014-12-05T08:04'},
+                        {'id': '456', 'scheduledAt': '2014-12-05T08:27'}
                     ]
                 }
             ],
-            u'unservedOrders': []
+            'unservedOrders': []
         },
-        u'success': True
+        'success': True
     }
 
 

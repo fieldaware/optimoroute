@@ -64,7 +64,7 @@ class TestBreak(object):
         brk = Break(earliest_start=dtime, latest_start=dtime, duration=5.5)
         with pytest.raises(TypeError) as excinfo:
             brk.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', (int, long), float)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', (int, int), float)
         assert err_msg == str(excinfo.value)
 
     def test_is_valid(self):
@@ -102,7 +102,7 @@ class TestWorkShift(object):
         ws.allowed_overtime = 2.5
         with pytest.raises(TypeError) as excinfo:
             ws.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'allowed_overtime', (int, long), float)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'allowed_overtime', (int, int), float)
         assert err_msg == str(excinfo.value)
 
     def test_break(self, cls_name):
@@ -171,7 +171,7 @@ class TestSchedulingInfo(object):
         si = SchedulingInfo(scheduled_at=dtime, scheduled_driver=1)
         with pytest.raises(TypeError) as excinfo:
             si.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', (basestring, Driver), int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'scheduled_driver', (str, Driver), int)
         assert err_msg == str(excinfo.value)
 
         # test it accepts a string as a driver
@@ -276,7 +276,7 @@ class TestOrder(object):
         order = Order(id='3', lat=5, lng=6, duration='7')
         with pytest.raises(TypeError) as excinfo:
             order.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', (int, long), str)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'duration', (int, int), str)
         assert err_msg == str(excinfo.value)
 
         order = Order(id='3', lat=5, lng=6, duration=-1)
@@ -299,7 +299,7 @@ class TestOrder(object):
         order.priority = 3
         with pytest.raises(TypeError) as excinfo:
             order.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'priority', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'priority', str, int)
         assert err_msg == str(excinfo.value)
 
         order = Order(id='3', lat=5.2, lng=6.1, duration=7)
@@ -335,7 +335,7 @@ class TestOrder(object):
         order.assigned_to = 4
         with pytest.raises(TypeError) as excinfo:
             order.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'assigned_to', (basestring, Driver), int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'assigned_to', (str, Driver), int)
         assert err_msg == str(excinfo.value)
 
         # test it accepts a string as a driver
@@ -441,7 +441,7 @@ class TestDriver(object):
         drv = Driver(id=3, start_lat='3', start_lng='4', end_lat='4', end_lng='5')
         with pytest.raises(TypeError) as excinfo:
             drv.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'id', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'id', str, int)
         assert err_msg == str(excinfo.value)
 
         drv = Driver(id='', start_lat='3', start_lng='4', end_lat='4', end_lng='5')
@@ -629,7 +629,7 @@ class TestOptimizationParameters(object):
         op = OptimizationParameters(balancing=4)
         with pytest.raises(TypeError) as excinfo:
             op.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'balancing', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'balancing', str, int)
         assert str(excinfo.value) == err_msg
 
         op = OptimizationParameters(balancing='NONSENSE')
@@ -642,7 +642,7 @@ class TestOptimizationParameters(object):
         op = OptimizationParameters(balance_by=3)
         with pytest.raises(TypeError) as excinfo:
             op.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'balance_by', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'balance_by', str, int)
         assert str(excinfo.value) == err_msg
 
         op = OptimizationParameters(balance_by='NONSENSE')
@@ -721,7 +721,7 @@ class TestRoutePlan(object):
         routeplan = RoutePlan(request_id=1234, callback_url=4, status_callback_url=4)
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'request_id', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'request_id', str, int)
         assert err_msg == str(excinfo.value)
 
         routeplan = RoutePlan(request_id='', callback_url=4, status_callback_url=4)
@@ -734,7 +734,7 @@ class TestRoutePlan(object):
         routeplan = RoutePlan(request_id='1234', callback_url=4, status_callback_url=4)
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'callback_url', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'callback_url', str, int)
         assert err_msg == str(excinfo.value)
 
     def test_status_callback_url(self, cls_name):
@@ -742,7 +742,7 @@ class TestRoutePlan(object):
                               status_callback_url=4)
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'status_callback_url', basestring, int)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'status_callback_url', str, int)
         assert err_msg == str(excinfo.value)
 
     def test_orders(self, cls_name, routeplan):
@@ -823,7 +823,7 @@ class TestRoutePlan(object):
         routeplan.no_load_capacities = 'HA'
         with pytest.raises(TypeError) as excinfo:
             routeplan.validate()
-        err_msg = TYPE_ERR_MSG.format(cls_name, 'no_load_capacities', (int, long), str)
+        err_msg = TYPE_ERR_MSG.format(cls_name, 'no_load_capacities', (int, int), str)
         assert err_msg == str(excinfo.value)
 
         routeplan.orders = list(orders)
